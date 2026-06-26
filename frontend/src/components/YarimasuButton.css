@@ -1,0 +1,31 @@
+.yarimasu-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  background: var(--ocean);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-top: 6px;
+}
+.yarimasu-btn:hover { background: var(--teal); }
+.yarimasu-btn i { font-size: 14px; }
+
+.yarimasu-done {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  background: var(--mint-light);
+  color: var(--mint-dark, #04342C);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 6px;
+}
+.yarimasu-done i { font-size: 14px; }

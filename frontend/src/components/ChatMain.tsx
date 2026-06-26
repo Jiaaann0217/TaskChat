@@ -1,10 +1,19 @@
 import { useEffect, useState } from "react";
-import { fetchMessages, sendMessage } from "../api.js";
+import { fetchMessages, sendMessage, type Message } from "../api";
+import EmptyChat from "./EmptyChat";
+import YarimasuButton from "./YarimasuButton";
 import "./ChatMain.css";
 
-export default function ChatMain({ roomId }) {
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
+type Props = {
+  roomId: number | null;
+  onStartChat: () => void; // EmptyChatのボタンから呼ばれる
+};
+
+export default function ChatMain({ roomId, onStartChat }: Props) {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState<string>("");
+  // やりますを押したメッセージIDを管理
+  const [donIds, setDoneIds] = useState<number[]>([]);
 
   useEffect(() => {
     if (!roomId) return;
@@ -16,21 +25,27 @@ export default function ChatMain({ roomId }) {
     if (!text || !roomId) return;
     await sendMessage(roomId, text);
     setInput("");
-    // 送信後に再取得
     fetchMessages(roomId).then(setMessages);
   }
 
-  function handleKeyDown(e) {
+  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
   }
 
+  function handleYarimasu(messageId: number) {
+    setDoneIds((prev) => [...prev, messageId]);
+    // バックエンド接続後はここでAPIを呼ぶ
+    // await postYarimasu(messageId);
+  }
+
+  // ルーム未選択
   if (!roomId) {
     return (
       <div className="main">
-        <div className="chat-empty">チャットルームを選択してください</div>
+        <EmptyChat onStartChat={onStartChat} />
       </div>
     );
   }
@@ -42,11 +57,8 @@ export default function ChatMain({ roomId }) {
         <div className="ch-icon">
           <i className="ti ti-users" />
         </div>
-        <span className="ch-title">
-          {/* ルーム名はAPIから取得後に表示 */}
-          {roomId ? `ルーム #${roomId}` : "—"}
-        </span>
-        <div className="ch-members">{/* メンバーアバターが入る */}</div>
+        <span className="ch-title">ルーム #{roomId}</span>
+        <div className="ch-members" />
         <button className="ch-btn">
           <i className="ti ti-pin" />ピン止め
         </button>
@@ -74,6 +86,14 @@ export default function ChatMain({ roomId }) {
                   <span className="msg-time">{msg.time_label}</span>
                 </div>
                 <div className="msg-text">{msg.body}</div>
+                {/* やりますボタン：バックエンド側で needs_response フラグを返す想定 */}
+                {msg.needs_response && (
+                  <YarimasuButton
+                    messageId={msg.id}
+                    done={donIds.includes(msg.id)}
+                    onYarimasu={handleYarimasu}
+                  />
+                )}
               </div>
             </div>
           ))
