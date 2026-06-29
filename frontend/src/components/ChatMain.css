@@ -1,0 +1,175 @@
+.main {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.chat-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: var(--text3);
+}
+
+/* ── チャットヘッダー ── */
+.chat-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 18px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.ch-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--blue-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ch-icon i { font-size: 15px; color: var(--blue-mid); }
+
+.ch-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  flex: 1;
+}
+
+.ch-members { display: flex; margin-right: 4px; }
+.ch-member-av {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 600;
+  margin-left: -6px;
+}
+.ch-member-av:first-child { margin-left: 0; }
+
+.ch-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--text2);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 5px 11px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.ch-btn:hover { background: var(--border); }
+.ch-btn i { font-size: 14px; }
+
+/* ── メッセージ一覧 ── */
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.messages::-webkit-scrollbar { width: 4px; }
+.messages::-webkit-scrollbar-track { background: transparent; }
+.messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+
+.chat-empty-inner {
+  font-size: 12px;
+  color: var(--text3);
+  text-align: center;
+  margin-top: 24px;
+}
+
+.msg { display: flex; gap: 10px; align-items: flex-start; }
+
+.msg-av {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.msg-body { flex: 1; }
+
+.msg-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin-bottom: 4px;
+}
+.msg-name { font-size: 13px; font-weight: 500; color: var(--text); }
+.msg-time { font-size: 11px; color: var(--text3); }
+.msg-text { font-size: 13px; color: var(--text); line-height: 1.6; white-space: pre-wrap; }
+
+/* ── 入力エリア ── */
+.input-area {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 12px 18px;
+  flex-shrink: 0;
+}
+
+.input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 8px 12px;
+}
+.input-row i {
+  font-size: 18px;
+  color: var(--text3);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.input-row i:hover { color: var(--text2); }
+
+.msg-input {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  line-height: 1.5;
+}
+.msg-input::placeholder { color: var(--text3); }
+
+.send-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--ocean);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.send-btn:hover { background: var(--teal); }
+.send-btn i { font-size: 16px; color: #fff; }
