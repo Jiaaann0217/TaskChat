@@ -1,0 +1,55 @@
+.empty-chat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 32px;
+}
+
+.ec-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: var(--blue-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+.ec-icon i {
+  font-size: 28px;
+  color: var(--blue-mid);
+}
+
+.ec-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.ec-sub {
+  font-size: 13px;
+  color: var(--text3);
+  text-align: center;
+  line-height: 1.6;
+}
+
+.ec-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 8px 20px;
+  background: var(--ocean);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.ec-btn:hover { background: var(--teal); }
+.ec-btn i { font-size: 16px; }

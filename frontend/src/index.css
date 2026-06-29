@@ -1,0 +1,39 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --navy: #0A1628;
+  --ocean: #065A82;
+  --teal: #1C7293;
+  --mint: #02C39A;
+  --mint-light: #E1F5EE;
+  --blue-light: #E6F1FB;
+  --blue-mid: #378ADD;
+  --blue-dark: #0C447C;
+  --red: #E24B4A;
+  --red-light: #FCEBEB;
+  --red-dark: #791F1F;
+  --warn-light: #FAEEDA;
+  --warn-dark: #854F0B;
+  --bg: #F5F5F3;
+  --surface: #FFFFFF;
+  --surface2: #F8F8F6;
+  --border: rgba(0, 0, 0, 0.10);
+  --border2: rgba(0, 0, 0, 0.18);
+  --text: #1A1A18;
+  --text2: #5A5A56;
+  --text3: #9A9A94;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic UI", sans-serif;
+  font-size: 13px;
+  color: var(--text);
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+}
