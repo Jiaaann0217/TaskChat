@@ -16,12 +16,32 @@ model User {
   tasks     Task[]
 }
 
+model Room {
+  id        Int       @id @default(autoincrement())
+  name      String
+  createdAt DateTime  @default(now())
+  messages  Message[]
+  pins      Pin[]
+}
+
 model Message {
   id        Int      @id @default(autoincrement())
   body      String
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])
   userId    Int
+  room      Room     @relation(fields: [roomId], references: [id])
+  roomId    Int
+  pin       Pin?
+}
+
+model Pin {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  message   Message  @relation(fields: [messageId], references: [id])
+  messageId Int      @unique
+  room      Room     @relation(fields: [roomId], references: [id])
+  roomId    Int
 }
 
 model Task {

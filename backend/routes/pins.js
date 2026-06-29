@@ -3,24 +3,25 @@ const router = express.Router();
 const prisma = require("../prisma/client");
 const auth = require("../middleware/auth");
 
+// ピン一覧（roomIdで絞り込み）
 router.get("/", auth, async (req, res) => {
-    const messages = await prisma.message.findMany({
+    const pins = await prisma.pin.findMany({
         where: { roomId: Number(req.query.roomId) },
-        orderBy: { createdAt: "asc" },
-        include: { user: { select: { name: true } } },
+        include: { message: true },
+        orderBy: { createdAt: "desc" },
     });
-    res.json(messages);
+    res.json(pins);
 });
 
+// ピン止め
 router.post("/", auth, async (req, res) => {
-    const message = await prisma.message.create({
+    const pin = await prisma.pin.create({
         data: {
-            body: req.body.body,
-            userId: req.user.id,
+            messageId: Number(req.body.messageId),
             roomId: Number(req.body.roomId),
         },
     });
-    res.json(message);
+    res.json(pin);
 });
 
 module.exports = router;
