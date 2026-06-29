@@ -3,4 +3,122 @@
   grid-template-columns: 224px 1fr 248px;
   grid-template-rows: 48px 1fr;
   height: 100vh;
+  position: relative;
+}
+
+.app-error {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  max-width: 360px;
+  padding: 10px 12px;
+  background: var(--red-light);
+  color: var(--red-dark);
+  border: 1px solid rgba(226, 75, 74, 0.25);
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  background: var(--bg);
+}
+
+.auth-panel {
+  width: min(360px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  color: var(--navy);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.auth-brand i {
+  color: var(--mint);
+  font-size: 24px;
+}
+
+.auth-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 3px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.auth-tabs button {
+  height: 34px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text2);
+  cursor: pointer;
+}
+
+.auth-tabs button.active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text2);
+}
+
+.auth-field input {
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  color: var(--text);
+  font: inherit;
+}
+
+.auth-field input:focus {
+  outline: 2px solid var(--blue-light);
+  border-color: var(--blue-mid);
+}
+
+.auth-error {
+  padding: 8px 10px;
+  background: var(--red-light);
+  color: var(--red-dark);
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.auth-submit {
+  height: 38px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--ocean);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.auth-submit:disabled {
+  cursor: wait;
+  opacity: 0.7;
 }
