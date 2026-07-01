@@ -4,3 +4,6 @@ node_modules
 "prisma/app.db-journal" 
 "prisma/app.db-wal" 
 "prisma/app.db-shm" 
+"prisma/app.db" 
+"prisma/app.db-shm" 
+"prisma/app.db-wal" 
