@@ -1,13 +1,18 @@
 import { useEffect, useState } from "react";
-import { fetchPins, fetchContributions } from "../api.js";
+import { fetchPins, fetchContributions, type Pin, type Contribution } from "../api";
 import "./PinPanel.css";
 
 const TABS = ["重要連絡", "決定事項", "リンク"];
 
-export default function PinPanel({ roomId }) {
-  const [activeTab, setActiveTab] = useState(0);
-  const [pins, setPins] = useState([]);
-  const [contributions, setContributions] = useState([]);
+type Props = {
+  roomId: number | null;
+  onClose: () => void;
+};
+
+export default function PinPanel({ roomId, onClose }: Props) {
+  const [activeTab, setActiveTab] = useState<number>(0);
+  const [pins, setPins] = useState<Pin[]>([]);
+  const [contributions, setContributions] = useState<Contribution[]>([]);
 
   useEffect(() => {
     if (!roomId) return;
@@ -17,14 +22,12 @@ export default function PinPanel({ roomId }) {
 
   return (
     <div className="pin-panel">
-      {/* ヘッダー */}
       <div className="pp-header">
         <i className="ti ti-notebook" />
         <span className="pp-title">ピン止めノート</span>
-        <i className="ti ti-layout-sidebar-right pp-close" title="閉じる" />
+        <i className="ti ti-layout-sidebar-right pp-close" title="閉じる" onClick={onClose} />
       </div>
 
-      {/* タブ */}
       <div className="pp-tabs">
         {TABS.map((tab, i) => (
           <div
@@ -37,7 +40,6 @@ export default function PinPanel({ roomId }) {
         ))}
       </div>
 
-      {/* ピンカード一覧 */}
       <div className="pp-body">
         {pins.length === 0 ? (
           <p className="pp-empty">ピン止めがありません</p>
@@ -56,7 +58,6 @@ export default function PinPanel({ roomId }) {
         )}
       </div>
 
-      {/* 貢献度セクション */}
       <div className="contrib-section">
         <div className="contrib-head">今月の貢献度</div>
         {contributions.length === 0 ? (
@@ -72,10 +73,7 @@ export default function PinPanel({ roomId }) {
               </div>
               <span className="contrib-name">{c.name}</span>
               <div className="c-track">
-                <div
-                  className="c-fill"
-                  style={{ width: `${c.pct}%`, background: c.color }}
-                />
+                <div className="c-fill" style={{ width: `${c.pct}%`, background: c.color }} />
               </div>
               <span className="contrib-n">{c.count}</span>
             </div>

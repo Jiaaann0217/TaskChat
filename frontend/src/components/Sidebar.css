@@ -36,6 +36,7 @@
   cursor: pointer;
   border-left: 2.5px solid transparent;
   transition: background 0.12s;
+  position: relative;
 }
 .nav-item:hover { background: var(--surface2); }
 .nav-item.active {
@@ -48,6 +49,67 @@
   flex-shrink: 0;
 }
 .nav-item.active i { color: var(--blue-mid); }
+
+/* ホバー時ゴミ箱ボタン */
+.ni-delete-btn {
+  width: 26px;
+  height: 26px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text3);
+  opacity: 0;
+  flex-shrink: 0;
+  transition: opacity 0.12s, background 0.12s, color 0.12s;
+  margin-left: auto;
+}
+.nav-item:hover .ni-delete-btn { opacity: 1; }
+.ni-delete-btn:hover {
+  background: var(--red);
+  color: #fff;
+}
+.ni-delete-btn i { font-size: 14px; }
+
+/* ── コンテキストメニュー ── */
+.ctx-menu {
+  position: fixed;
+  z-index: 999;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  padding: 4px;
+  min-width: 180px;
+  list-style: none;
+}
+
+.ctx-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: var(--text);
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.ctx-item i { font-size: 15px; color: var(--text3); }
+.ctx-item:hover { background: var(--surface2); }
+
+.ctx-item--danger { color: var(--red); }
+.ctx-item--danger i { color: var(--red); }
+.ctx-item--danger:hover { background: var(--red-light); }
+
+.ctx-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 3px 4px;
+}
 
 .ni-name {
   font-size: 13px;

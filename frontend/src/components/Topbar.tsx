@@ -19,11 +19,10 @@ export default function Topbar() {
 
       <div className="topbar-actions">
         <i className="ti ti-search" title="検索" />
-        <i className="ti ti-bell"   title="通知" />
+        <i className="ti ti-bell" title="通知" />
         <i className="ti ti-settings" title="設定" />
       </div>
 
-      {/* ログインユーザー情報が入る */}
       <div className="topbar-avatar">—</div>
     </header>
   );
