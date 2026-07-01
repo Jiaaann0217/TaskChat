@@ -21,7 +21,7 @@ export type Message = {
   avatar_bg: string;
   avatar_fg: string;
   avatar_label: string;
-  needs_response?: boolean;
+  needs_response: boolean;
 };
 
 export type Pin = {
@@ -58,6 +58,7 @@ type BackendMessage = {
   id: number;
   body: string;
   createdAt: string;
+  isRecruiting?: boolean;   // ← これを追加
   user?: {
     name?: string;
   };
@@ -181,15 +182,15 @@ export async function fetchMessages(roomId: number): Promise<Message[]> {
       avatar_bg: "#E6F1FB",
       avatar_fg: "#0C447C",
       avatar_label: avatarLabel(userName),
-      needs_response: false,
+      needs_response: message.isRecruiting ?? false,
     };
-  });
+    });
 }
 
-export async function sendMessage(roomId: number, body: string): Promise<void> {
+export async function sendMessage(roomId: number, body: string, isRecruiting = false): Promise<void> {
   await apiFetch("/api/messages", {
     method: "POST",
-    body: JSON.stringify({ roomId, body }),
+    body: JSON.stringify({ roomId, body, isRecruiting }),
   });
 }
 
@@ -239,6 +240,10 @@ export async function createRoom(name = "新しいチャット"): Promise<Room> 
     icon: "ti-message-circle",
     unread: 0,
   };
+}
+
+export async function deleteRoom(roomId: number): Promise<void> {
+  await apiFetch(`/api/rooms/${roomId}`, { method: "DELETE" });
 }
 
 export async function login(name: string, password: string): Promise<string> {

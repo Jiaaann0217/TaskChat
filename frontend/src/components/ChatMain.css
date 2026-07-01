@@ -5,127 +5,166 @@
   background: var(--bg);
 }
 
-.chat-empty {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  color: var(--text3);
-}
-
 /* ── チャットヘッダー ── */
 .chat-header {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   padding: 0 18px;
-  height: 48px;
+  height: 52px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-shrink: 0;
 }
 
 .ch-icon {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 8px;
   background: var(--blue-light);
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
-.ch-icon i { font-size: 15px; color: var(--blue-mid); }
+.ch-icon i { font-size: 16px; color: var(--blue-mid); }
 
 .ch-title {
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text);
   flex: 1;
 }
 
 .ch-members { display: flex; margin-right: 4px; }
-.ch-member-av {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  border: 2px solid var(--surface);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 9px;
-  font-weight: 600;
-  margin-left: -6px;
-}
-.ch-member-av:first-child { margin-left: 0; }
 
 .ch-btn {
   display: flex;
   align-items: center;
   gap: 5px;
   font-size: 12px;
+  font-weight: 500;
   color: var(--text2);
   background: var(--surface2);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border2);
   border-radius: 8px;
-  padding: 5px 11px;
+  padding: 6px 12px;
   cursor: pointer;
-  transition: background 0.12s;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  white-space: nowrap;
 }
-.ch-btn:hover { background: var(--border); }
-.ch-btn i { font-size: 14px; }
-.ch-btn--active {
-  background: var(--mint-light);
-  color: var(--teal);
-  border-color: var(--mint);
+.ch-btn i { font-size: 15px; }
+.ch-btn:hover { background: var(--blue-light); color: var(--blue-dark); border-color: var(--blue-mid); }
+
+/* ピン止めボタン：アクティブ時に黄色系 */
+.ch-btn--pin-active {
+  background: var(--amber-light);
+  color: var(--amber);
+  border-color: var(--amber);
 }
-.ch-btn--active:hover { background: #c5ede3; }
+.ch-btn--pin-active:hover {
+  background: #fde68a;
+  color: var(--amber);
+}
 
 /* ── メッセージ一覧 ── */
 .messages {
   flex: 1;
   overflow-y: auto;
-  padding: 16px 20px;
+  padding: 20px 24px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 .messages::-webkit-scrollbar { width: 4px; }
 .messages::-webkit-scrollbar-track { background: transparent; }
-.messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+.messages::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 999px; }
 
 .chat-empty-inner {
-  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 40px;
   color: var(--text3);
-  text-align: center;
-  margin-top: 24px;
 }
+.chat-empty-inner i { font-size: 32px; }
+.chat-empty-inner p { font-size: 13px; }
 
-.msg { display: flex; gap: 10px; align-items: flex-start; }
+/* メッセージ行 */
+.msg {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  border-radius: 10px;
+  padding: 4px 6px;
+  transition: background 0.1s;
+}
+.msg:hover { background: rgba(0,0,0,0.025); }
+
+/* 募集メッセージ行：左ボーダー強調 */
+.msg--recruiting {
+  border-left: 3px solid var(--green);
+  padding-left: 10px;
+  background: #f0fdf4;
+}
+.msg--recruiting:hover { background: #dcfce7; }
 
 .msg-av {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   flex-shrink: 0;
+  border: 2px solid var(--surface);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-.msg-body { flex: 1; }
+.msg-body { flex: 1; min-width: 0; }
 
 .msg-meta {
   display: flex;
-  align-items: baseline;
-  gap: 7px;
-  margin-bottom: 4px;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+  flex-wrap: wrap;
 }
-.msg-name { font-size: 13px; font-weight: 500; color: var(--text); }
-.msg-time { font-size: 11px; color: var(--text3); }
-.msg-text { font-size: 13px; color: var(--text); line-height: 1.6; white-space: pre-wrap; }
+.msg-name {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.msg-name i { font-size: 14px; color: var(--text3); }
+.msg-time {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  color: var(--text3);
+}
+.msg-time i { font-size: 12px; }
+
+/* 募集バッジ：濃いグリーンで視認性UP */
+.msg-recruiting-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--green);
+  border-radius: 999px;
+  padding: 2px 8px;
+  letter-spacing: 0.02em;
+}
+.msg-recruiting-badge i { font-size: 12px; }
 
 /* ── 吹き出しバブル ── */
 .msg-bubble-row {
@@ -136,20 +175,27 @@
 
 .msg-bubble {
   display: inline-block;
-  max-width: calc(100% - 36px);
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 0 14px 14px 14px;
-  padding: 9px 14px;
+  max-width: calc(100% - 40px);
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 4px 14px 14px 14px;
+  padding: 10px 14px;
   font-size: 13px;
   color: var(--text);
-  line-height: 1.6;
+  line-height: 1.65;
   white-space: pre-wrap;
   word-break: break-word;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
 
-/* ── メッセージ右端ピンボタン ── */
+/* 募集バブル：緑ボーダー */
+.msg-bubble--recruiting {
+  background: #f0fdf4;
+  border-color: var(--green);
+  border-left-width: 3px;
+}
+
+/* ── ピンボタン ── */
 .msg-pin-btn {
   flex-shrink: 0;
   width: 28px;
@@ -164,43 +210,77 @@
   color: var(--text3);
   opacity: 0;
   transition: opacity 0.15s, background 0.12s, color 0.12s;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 .msg:hover .msg-pin-btn { opacity: 1; }
-.msg-pin-btn:hover {
-  background: var(--warn-light);
-  color: var(--warn-dark);
-}
-.msg-pin-btn.pinned {
-  opacity: 1;
-  color: var(--warn-dark);
-}
+.msg-pin-btn:hover { background: var(--amber-light); color: var(--amber); }
+.msg-pin-btn.pinned { opacity: 1; color: var(--amber); }
 .msg-pin-btn i { font-size: 15px; }
 
 /* ── 入力エリア ── */
 .input-area {
   background: var(--surface);
-  border-top: 1px solid var(--border);
-  padding: 12px 18px;
+  border-top: 2px solid var(--border);
+  padding: 10px 16px 14px;
+  flex-shrink: 0;
+  transition: border-color 0.2s;
+}
+.input-area--recruiting {
+  border-top-color: var(--green);
+}
+
+/* 募集モード中の告知バー */
+.recruit-active-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--green);
+  color: #fff;
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+.recruit-active-bar i { font-size: 15px; flex-shrink: 0; }
+.recruit-active-bar span { flex: 1; }
+.recruit-active-close {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  border-radius: 5px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #fff;
   flex-shrink: 0;
 }
+.recruit-active-close:hover { background: rgba(255,255,255,0.35); }
+.recruit-active-close i { font-size: 13px; }
 
 .input-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   background: var(--surface2);
-  border: 1px solid var(--border2);
+  border: 1.5px solid var(--border2);
   border-radius: 12px;
-  padding: 8px 12px;
+  padding: 8px 10px;
+  transition: border-color 0.15s;
 }
-.input-row i {
-  font-size: 18px;
+.input-row:focus-within { border-color: var(--blue-mid); }
+.input-area--recruiting .input-row { border-color: var(--green); }
+
+.input-row > .ti {
+  font-size: 19px;
   color: var(--text3);
   cursor: pointer;
   flex-shrink: 0;
+  transition: color 0.12s;
 }
-.input-row i:hover { color: var(--text2); }
+.input-row > .ti:hover { color: var(--text2); }
 
 .msg-input {
   flex: 1;
@@ -214,10 +294,44 @@
 }
 .msg-input::placeholder { color: var(--text3); }
 
-.send-btn {
-  width: 32px;
-  height: 32px;
+/* 募集トグル：常時テキスト+アイコンで視認性確保 */
+.recruit-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
   border-radius: 8px;
+  border: 1.5px solid var(--border2);
+  background: var(--surface);
+  color: var(--text2);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.recruit-toggle i { font-size: 15px; }
+.recruit-toggle:hover {
+  border-color: var(--green);
+  color: var(--green);
+  background: var(--green-light);
+}
+/* ON 時：塗り潰しグリーンで誰でも分かる */
+.recruit-toggle--on {
+  background: var(--green);
+  border-color: var(--green-dark);
+  color: #fff;
+}
+.recruit-toggle--on:hover {
+  background: var(--green-dark);
+  color: #fff;
+}
+
+.send-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
   background: var(--ocean);
   border: none;
   display: flex;
@@ -225,7 +339,8 @@
   justify-content: center;
   cursor: pointer;
   flex-shrink: 0;
-  transition: background 0.15s;
+  transition: background 0.15s, transform 0.1s;
 }
-.send-btn:hover { background: var(--teal); }
-.send-btn i { font-size: 16px; color: #fff; }
+.send-btn:hover { background: var(--teal); transform: scale(1.05); }
+.send-btn:active { transform: scale(0.97); }
+.send-btn i { font-size: 17px; color: #fff; }

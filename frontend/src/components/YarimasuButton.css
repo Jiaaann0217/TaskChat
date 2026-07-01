@@ -1,31 +1,46 @@
 .yarimasu-btn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 6px 14px;
-  background: var(--ocean);
+  gap: 8px;
+  padding: 9px 18px;
+  background: var(--green);
   color: #fff;
   border: none;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 500;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.15s;
-  margin-top: 6px;
+  transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+  margin-top: 10px;
+  box-shadow: 0 3px 8px rgba(5, 150, 105, 0.35);
 }
-.yarimasu-btn:hover { background: var(--teal); }
-.yarimasu-btn i { font-size: 14px; }
+.yarimasu-btn:hover {
+  background: var(--green-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(5, 150, 105, 0.4);
+}
+.yarimasu-btn:active { transform: translateY(0); box-shadow: none; }
+.yarimasu-btn i { font-size: 18px; }
+
+.yarimasu-sub {
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.85;
+  border-left: 1px solid rgba(255,255,255,0.4);
+  padding-left: 9px;
+}
 
 .yarimasu-done {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 6px 14px;
-  background: var(--mint-light);
-  color: var(--mint-dark, #04342C);
-  border-radius: 8px;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--green-light);
+  color: var(--green-dark);
+  border: 1.5px solid var(--green);
+  border-radius: 10px;
   font-size: 12px;
-  font-weight: 500;
-  margin-top: 6px;
+  font-weight: 600;
+  margin-top: 10px;
 }
-.yarimasu-done i { font-size: 14px; }
+.yarimasu-done i { font-size: 15px; }
