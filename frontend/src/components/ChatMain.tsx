@@ -20,11 +20,36 @@ export default function ChatMain({ roomId, onStartChat, pinPanelOpen, onTogglePi
   const [recruiting, setRecruiting] = useState(false);
   const [doneIds, setDoneIds] = useState<number[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const ws = useRef<WebSocket | null>(null);
+  // 自分が送信したメッセージIDを記録してWS重複受信を防ぐ
+  const sentIds = useRef<Set<number>>(new Set());
 
   useEffect(() => {
     if (!roomId) return;
+
     fetchMessages(roomId).then(setMessages);
     setRecruiting(false);
+
+    // WebSocket接続
+    ws.current = new WebSocket(`ws://localhost:3000/ws/${roomId}`);
+
+    ws.current.onmessage = (event: MessageEvent) => {
+      const message: LocalMessage = JSON.parse(event.data);
+      // 自分が送ったメッセージはすでに画面に追加済みなのでスキップ
+      if (sentIds.current.has(message.id)) {
+        sentIds.current.delete(message.id);
+        return;
+      }
+      setMessages((prev) => [...prev, message]);
+    };
+
+    ws.current.onerror = () => {
+      // WS接続失敗はサイレントに無視（ポーリングで代替可能）
+    };
+
+    return () => {
+      ws.current?.close();
+    };
   }, [roomId]);
 
   useEffect(() => {
@@ -34,17 +59,33 @@ export default function ChatMain({ roomId, onStartChat, pinPanelOpen, onTogglePi
   async function handleSend() {
     const text = input.trim();
     if (!text || !roomId) return;
-    await sendMessage(roomId, text);
+
+    // DBに保存して保存済みメッセージを取得
+    const saved = await sendMessage(roomId, text) as LocalMessage | undefined;
     setInput("");
-    fetchMessages(roomId).then((fetched: Message[]) => {
-      const withFlag: LocalMessage[] = fetched.map((m, i) => {
-        if (i === fetched.length - 1 && recruiting) {
-          return { ...m, is_recruiting: true };
-        }
-        return m;
+
+    if (saved) {
+      // 自分の画面に即追加
+      const withFlag: LocalMessage = recruiting ? { ...saved, is_recruiting: true } : saved;
+      setMessages((prev) => [...prev, withFlag]);
+
+      // WSで全員に送信（自分のIDを記録して重複受信を防ぐ）
+      sentIds.current.add(saved.id);
+      if (ws.current?.readyState === WebSocket.OPEN) {
+        ws.current.send(JSON.stringify(withFlag));
+      }
+    } else {
+      // savedが返らない場合（void）は再フェッチで対応
+      fetchMessages(roomId).then((fetched: Message[]) => {
+        const withFlag: LocalMessage[] = fetched.map((m, i) => {
+          if (i === fetched.length - 1 && recruiting) {
+            return { ...m, is_recruiting: true };
+          }
+          return m;
+        });
+        setMessages(withFlag);
       });
-      setMessages(withFlag);
-    });
+    }
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -148,7 +189,6 @@ export default function ChatMain({ roomId, onStartChat, pinPanelOpen, onTogglePi
 
       {/* 入力エリア */}
       <div className={`input-area ${recruiting ? "input-area--recruiting" : ""}`}>
-        {/* 募集モード中の告知バー */}
         {recruiting && (
           <div className="recruit-active-bar">
             <i className="ti ti-speakerphone" />
@@ -168,7 +208,6 @@ export default function ChatMain({ roomId, onStartChat, pinPanelOpen, onTogglePi
             onKeyDown={handleKeyDown}
             rows={1}
           />
-          {/* 募集トグル：常時テキスト表示 */}
           <button
             className={`recruit-toggle ${recruiting ? "recruit-toggle--on" : ""}`}
             onClick={() => setRecruiting((r) => !r)}
