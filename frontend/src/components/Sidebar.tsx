@@ -1,22 +1,31 @@
 import { useEffect, useRef, useState } from "react";
-import { fetchRooms, fetchTasks, deleteRoom } from "../api.js";
+import { fetchRooms, fetchTasks, deleteRoom, type Room, type Task } from "../api";
 import "./Sidebar.css";
 
-export default function Sidebar({ activeRoomId, onSelectRoom, onDeleteRoom, userName, refreshTrigger }) {
-  const [rooms, setRooms] = useState([]);
-  const [tasks, setTasks] = useState([]);
-  const [contextMenu, setContextMenu] = useState(null); // { x, y, roomId }
-  const menuRef = useRef(null);
+type Props = {
+  activeRoomId: number | null;
+  onSelectRoom: (id: number) => void;
+  onDeleteRoom?: () => void;
+  userName: string;
+  refreshTrigger: number;
+};
+
+type ContextMenu = { x: number; y: number; roomId: number };
+
+export default function Sidebar({ activeRoomId, onSelectRoom, onDeleteRoom, userName, refreshTrigger }: Props) {
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [contextMenu, setContextMenu] = useState<ContextMenu | null>(null);
+  const menuRef = useRef<HTMLUListElement>(null);
 
   useEffect(() => {
     fetchRooms().then(setRooms);
     fetchTasks().then(setTasks);
   }, [refreshTrigger]);
 
-  // コンテキストメニューの外クリックで閉じる
   useEffect(() => {
-    function handleClick(e) {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setContextMenu(null);
       }
     }
@@ -24,25 +33,24 @@ export default function Sidebar({ activeRoomId, onSelectRoom, onDeleteRoom, user
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  function handleContextMenu(e, roomId) {
+  function handleContextMenu(e: React.MouseEvent, roomId: number) {
     e.preventDefault();
     setContextMenu({ x: e.clientX, y: e.clientY, roomId });
   }
 
-  async function handleDelete(roomId) {
+  async function handleDelete(roomId: number) {
     setContextMenu(null);
     try {
       await deleteRoom(roomId);
       setRooms((prev) => prev.filter((r) => r.id !== roomId));
       if (activeRoomId === roomId) onDeleteRoom?.();
     } catch {
-      // エラーは無視（後でエラーハンドリング追加可）
+      // エラーは無視
     }
   }
 
   return (
     <aside className="sidebar">
-      {/* チャットセクション */}
       <div className="sidebar-sec">チャット</div>
 
       {rooms.length === 0 ? (
@@ -57,10 +65,9 @@ export default function Sidebar({ activeRoomId, onSelectRoom, onDeleteRoom, user
           >
             <i className={`ti ${room.icon}`} />
             <span className="ni-name">{room.name}</span>
-            {room.unread > 0 && (
+            {(room.unread ?? 0) > 0 && (
               <span className="ni-badge">{room.unread}</span>
             )}
-            {/* ホバー時ゴミ箱 */}
             <button
               className="ni-delete-btn"
               title="削除"
@@ -74,7 +81,6 @@ export default function Sidebar({ activeRoomId, onSelectRoom, onDeleteRoom, user
 
       <hr className="sidebar-divider" />
 
-      {/* 作業一覧セクション */}
       <div className="sidebar-sec">作業一覧</div>
 
       {tasks.length === 0 ? (
@@ -94,13 +100,10 @@ export default function Sidebar({ activeRoomId, onSelectRoom, onDeleteRoom, user
 
       <hr className="sidebar-divider" />
 
-      {/* 自分情報ボックス */}
       <div className="me-box">
         {userName ? (
           <div className="me-top">
-            <div className="me-avatar">
-              {userName.slice(0, 2).toUpperCase()}
-            </div>
+            <div className="me-avatar">{userName.slice(0, 2).toUpperCase()}</div>
             <div>
               <div className="me-name">{userName}</div>
               <div className="me-role">メンバー</div>
@@ -111,7 +114,6 @@ export default function Sidebar({ activeRoomId, onSelectRoom, onDeleteRoom, user
         )}
       </div>
 
-      {/* 右クリックコンテキストメニュー */}
       {contextMenu && (
         <ul
           ref={menuRef}
@@ -119,17 +121,14 @@ export default function Sidebar({ activeRoomId, onSelectRoom, onDeleteRoom, user
           style={{ top: contextMenu.y, left: contextMenu.x }}
         >
           <li className="ctx-item" onClick={() => { onSelectRoom(contextMenu.roomId); setContextMenu(null); }}>
-            <i className="ti ti-message-circle" />
-            チャットを開く
+            <i className="ti ti-message-circle" />チャットを開く
           </li>
           <li className="ctx-item">
-            <i className="ti ti-users" />
-            参加メンバーを見る
+            <i className="ti ti-users" />参加メンバーを見る
           </li>
           <li className="ctx-divider" />
           <li className="ctx-item ctx-item--danger" onClick={() => handleDelete(contextMenu.roomId)}>
-            <i className="ti ti-trash" />
-            削除する
+            <i className="ti ti-trash" />削除する
           </li>
         </ul>
       )}
