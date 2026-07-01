@@ -6,14 +6,18 @@ import "./ChatMain.css";
 
 type Props = {
   roomId: number | null;
-  onStartChat: () => void; // EmptyChatのボタンから呼ばれる
+  onStartChat: () => void;
+  pinPanelOpen: boolean;
+  onTogglePin: () => void;
 };
 
-export default function ChatMain({ roomId, onStartChat }: Props) {
+export default function ChatMain({ roomId, onStartChat, pinPanelOpen, onTogglePin }: Props) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState<string>("");
   // やりますを押したメッセージIDを管理
   const [donIds, setDoneIds] = useState<number[]>([]);
+  // 募集中かどうか
+  const [recruiting, setRecruiting] = useState(false);
 
   useEffect(() => {
     if (!roomId) return;
@@ -59,7 +63,14 @@ export default function ChatMain({ roomId, onStartChat }: Props) {
         </div>
         <span className="ch-title">ルーム #{roomId}</span>
         <div className="ch-members" />
-        <button className="ch-btn">
+        <button
+          className={`ch-btn ${recruiting ? "ch-btn--active" : ""}`}
+          onClick={() => setRecruiting((r) => !r)}
+        >
+          <i className={`ti ${recruiting ? "ti-user-check" : "ti-user-plus"}`} />
+          {recruiting ? "募集締め切る" : "募集する"}
+        </button>
+        <button className={`ch-btn ${pinPanelOpen ? "ch-btn--active" : ""}`} onClick={onTogglePin}>
           <i className="ti ti-pin" />ピン止め
         </button>
         <button className="ch-btn">
@@ -85,9 +96,14 @@ export default function ChatMain({ roomId, onStartChat }: Props) {
                   <span className="msg-name">{msg.user_name}</span>
                   <span className="msg-time">{msg.time_label}</span>
                 </div>
-                <div className="msg-text">{msg.body}</div>
-                {/* やりますボタン：バックエンド側で needs_response フラグを返す想定 */}
-                {msg.needs_response && (
+                <div className="msg-bubble-row">
+                  <div className="msg-bubble">{msg.body}</div>
+                  <button className="msg-pin-btn" title="ピン止め">
+                    <i className="ti ti-pin" />
+                  </button>
+                </div>
+                {/* やりますボタン：needs_response がなければ全メッセージに表示 */}
+                {(msg.needs_response !== false) && (
                   <YarimasuButton
                     messageId={msg.id}
                     done={donIds.includes(msg.id)}
@@ -114,7 +130,7 @@ export default function ChatMain({ roomId, onStartChat }: Props) {
           />
           <i className="ti ti-mood-smile" title="絵文字" />
           <button className="send-btn" onClick={handleSend} title="送信">
-            <i className="ti ti-send" />
+            <i className="ti ti-arrow-up" />
           </button>
         </div>
       </div>

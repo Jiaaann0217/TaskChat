@@ -11,6 +11,8 @@ export default function App() {
   const [activeRoomId, setActiveRoomId] = useState<number | null>(null);
   const [roomListVersion, setRoomListVersion] = useState(0);
   const [error, setError] = useState("");
+  const [userName, setUserName] = useState("");
+  const [pinPanelOpen, setPinPanelOpen] = useState(true);
 
   async function handleStartChat() {
     try {
@@ -25,12 +27,14 @@ export default function App() {
 
   async function handleLogin(name: string, password: string) {
     await login(name, password);
+    setUserName(name);
     setAuthenticated(true);
   }
 
   async function handleRegister(name: string, password: string) {
     await register(name, password);
     await login(name, password);
+    setUserName(name);
     setAuthenticated(true);
   }
 
@@ -39,15 +43,21 @@ export default function App() {
   }
 
   return (
-    <div className="app">
+    <div className={`app ${pinPanelOpen ? "pin-open" : "pin-closed"}`}>
       <Topbar />
       <Sidebar
         key={roomListVersion}
         activeRoomId={activeRoomId}
         onSelectRoom={setActiveRoomId}
+        userName={userName}
       />
-      <ChatMain roomId={activeRoomId} onStartChat={handleStartChat} />
-      <PinPanel roomId={activeRoomId} />
+      <ChatMain
+        roomId={activeRoomId}
+        onStartChat={handleStartChat}
+        pinPanelOpen={pinPanelOpen}
+        onTogglePin={() => setPinPanelOpen((o) => !o)}
+      />
+      {pinPanelOpen && <PinPanel roomId={activeRoomId} onClose={() => setPinPanelOpen(false)} />}
       {error && <div className="app-error">{error}</div>}
     </div>
   );

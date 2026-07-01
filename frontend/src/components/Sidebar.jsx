@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { fetchRooms, fetchTasks } from "../api.js";
 import "./Sidebar.css";
 
-export default function Sidebar({ activeRoomId, onSelectRoom }) {
+export default function Sidebar({ activeRoomId, onSelectRoom, userName }) {
   const [rooms, setRooms] = useState([]);
   const [tasks, setTasks] = useState([]);
 
@@ -58,7 +58,19 @@ export default function Sidebar({ activeRoomId, onSelectRoom }) {
 
       {/* 自分情報ボックス（ログイン後に表示） */}
       <div className="me-box">
-        <p className="sidebar-empty">ログインしていません</p>
+        {userName ? (
+          <div className="me-top">
+            <div className="me-avatar">
+              {userName.slice(0, 2).toUpperCase()}
+            </div>
+            <div>
+              <div className="me-name">{userName}</div>
+              <div className="me-role">メンバー</div>
+            </div>
+          </div>
+        ) : (
+          <p className="sidebar-empty">ログインしていません</p>
+        )}
       </div>
     </aside>
   );

@@ -4,7 +4,7 @@ import "./PinPanel.css";
 
 const TABS = ["重要連絡", "決定事項", "リンク"];
 
-export default function PinPanel({ roomId }) {
+export default function PinPanel({ roomId, onClose }) {
   const [activeTab, setActiveTab] = useState(0);
   const [pins, setPins] = useState([]);
   const [contributions, setContributions] = useState([]);
@@ -21,7 +21,7 @@ export default function PinPanel({ roomId }) {
       <div className="pp-header">
         <i className="ti ti-notebook" />
         <span className="pp-title">ピン止めノート</span>
-        <i className="ti ti-layout-sidebar-right pp-close" title="閉じる" />
+        <i className="ti ti-layout-sidebar-right pp-close" title="閉じる" onClick={onClose} />
       </div>
 
       {/* タブ */}
