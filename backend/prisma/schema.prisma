@@ -33,6 +33,7 @@ model Message {
   room      Room     @relation(fields: [roomId], references: [id])
   roomId    Int
   pin       Pin?
+  isRecruiting Boolean @default(false)
 }
 
 model Pin {
