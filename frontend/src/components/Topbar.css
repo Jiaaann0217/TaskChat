@@ -79,3 +79,29 @@
   cursor: pointer;
   border: 1.5px solid rgba(255, 255, 255, 0.15);
 }
+
+.topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.topbar-logout {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.topbar-logout:hover {
+  background: rgba(226, 75, 74, 0.3);
+  color: #fff;
+  border-color: rgba(226, 75, 74, 0.5);
+}
+.topbar-logout i { font-size: 16px; }

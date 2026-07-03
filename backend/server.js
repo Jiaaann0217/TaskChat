@@ -22,14 +22,15 @@ app.ws("/ws/:roomId", (ws, req) => {
   console.log(`ルーム${roomId}に接続 (${rooms[roomId].size}人)`);
 
   // メッセージを受信したら同じルーム全員に送信
-  ws.on("message", (data) => {
-    const message = JSON.parse(data);
-    rooms[roomId].forEach((client) => {
-      if (client.readyState === 1) { // 1 = 接続中
-        client.send(JSON.stringify(message));
-      }
-    });
+ws.on("message", (data) => {
+  const message = JSON.parse(data);
+  rooms[roomId].forEach((client) => {
+    // 送信者自身には返さない
+    if (client !== ws && client.readyState === 1) {
+      client.send(JSON.stringify(message));
+    }
   });
+});
 
   // 切断したらルームから削除
   ws.on("close", () => {

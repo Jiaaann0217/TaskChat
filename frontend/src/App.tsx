@@ -3,44 +3,72 @@ import Topbar from "./components/Topbar";
 import Sidebar from "./components/Sidebar";
 import ChatMain from "./components/ChatMain";
 import PinPanel from "./components/PinPanel";
-import { createRoom, isAuthenticated, login, register } from "./api";
+import { createRoom, createTask, isAuthenticated, login, logout, register } from "./api";
 import "./App.css";
+
+// モーダルの用途
+type ModalMode = "room" | "task";
 
 export default function App() {
   const [authenticated, setAuthenticated] = useState(isAuthenticated());
   const [activeRoomId, setActiveRoomId] = useState<number | null>(null);
   const [roomListVersion, setRoomListVersion] = useState(0);
+  const [taskListVersion, setTaskListVersion] = useState(0);
   const [error, setError] = useState("");
   const [userName, setUserName] = useState<string>(
     () => localStorage.getItem("user_name") ?? ""
   );
   const [pinPanelOpen, setPinPanelOpen] = useState(true);
-  // 名前入力モーダル
-  const [showRoomModal, setShowRoomModal] = useState(false);
-  const [roomNameInput, setRoomNameInput] = useState("");
-  const [creatingRoom, setCreatingRoom] = useState(false);
 
-  // EmptyChat・やりますからの「チャット開始」→ モーダルを開く
+  // 汎用モーダル
+  const [modalMode, setModalMode] = useState<ModalMode>("room");
+  const [showModal, setShowModal] = useState(false);
+  const [modalInput, setModalInput] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  // チャット開始ボタン → ルーム作成モーダル
   function handleStartChat() {
-    setRoomNameInput("");
-    setShowRoomModal(true);
+    setModalMode("room");
+    setModalInput("");
+    setShowModal(true);
   }
 
-  // モーダルで名前確定 → ルーム作成
-  async function handleCreateRoom() {
-    const name = roomNameInput.trim() || "新しいチャット";
-    setCreatingRoom(true);
+  // やりますボタン → タスク追加モーダル
+  function handleYarimasu() {
+    setModalMode("task");
+    setModalInput("");
+    setShowModal(true);
+  }
+
+  // モーダル確定
+  async function handleModalSubmit() {
+    setSubmitting(true);
     try {
-      const newRoom = await createRoom(name);
-      setActiveRoomId(newRoom.id);
-      setRoomListVersion((v) => v + 1);
+      if (modalMode === "room") {
+        const name = modalInput.trim() || "新しいチャット";
+        const newRoom = await createRoom(name);
+        setActiveRoomId(newRoom.id);
+        setRoomListVersion((v) => v + 1);
+      } else {
+        const title = modalInput.trim() || "新しい作業";
+        await createTask(title);
+        setTaskListVersion((v) => v + 1);
+      }
       setError("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "チャットを開始できませんでした");
+      setError(err instanceof Error ? err.message : "失敗しました");
     } finally {
-      setCreatingRoom(false);
-      setShowRoomModal(false);
+      setSubmitting(false);
+      setShowModal(false);
     }
+  }
+
+  function handleLogout() {
+    logout();
+    localStorage.removeItem("user_name");
+    setAuthenticated(false);
+    setUserName("");
+    setActiveRoomId(null);
   }
 
   async function handleLogin(name: string, password: string) {
@@ -62,58 +90,62 @@ export default function App() {
     return <AuthScreen onLogin={handleLogin} onRegister={handleRegister} />;
   }
 
+  const isTask = modalMode === "task";
+
   return (
     <div className={`app ${pinPanelOpen ? "pin-open" : "pin-closed"}`}>
-      <Topbar />
+      <Topbar userName={userName} onLogout={handleLogout} />
       <Sidebar
         activeRoomId={activeRoomId}
         onSelectRoom={setActiveRoomId}
         onDeleteRoom={() => setActiveRoomId(null)}
         userName={userName}
         refreshTrigger={roomListVersion}
+        taskRefreshTrigger={taskListVersion}
       />
       <ChatMain
         roomId={activeRoomId}
         onStartChat={handleStartChat}
+        onYarimasu={handleYarimasu}
         pinPanelOpen={pinPanelOpen}
         onTogglePin={() => setPinPanelOpen((o) => !o)}
-        onRoomCreated={(id) => {
-          setActiveRoomId(id);
-          setRoomListVersion((v) => v + 1);
-        }}
       />
       {pinPanelOpen && <PinPanel roomId={activeRoomId} onClose={() => setPinPanelOpen(false)} />}
       {error && <div className="app-error">{error}</div>}
 
-      {/* ルーム名入力モーダル */}
-      {showRoomModal && (
-        <div className="modal-overlay" onClick={() => setShowRoomModal(false)}>
+      {/* 汎用モーダル */}
+      {showModal && (
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal-panel" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <i className="ti ti-message-circle" />
-              <span>新しいチャットを作成</span>
+              <i className={`ti ${isTask ? "ti-checkbox" : "ti-message-circle"}`} />
+              <span>{isTask ? "作業を追加" : "新しいチャットを作成"}</span>
             </div>
-            <p className="modal-sub">チャットルームの名前を入力してください</p>
+            <p className="modal-sub">
+              {isTask
+                ? "引き受ける作業の名前を入力してください"
+                : "チャットルームの名前を入力してください"}
+            </p>
             <input
               className="modal-input"
               type="text"
-              placeholder="例：デザインチーム、バグ報告…"
-              value={roomNameInput}
-              onChange={(e) => setRoomNameInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleCreateRoom()}
+              placeholder={isTask ? "例：デザイン修正、バグ調査…" : "例：デザインチーム、バグ報告…"}
+              value={modalInput}
+              onChange={(e) => setModalInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleModalSubmit()}
               autoFocus
               maxLength={40}
             />
             <div className="modal-actions">
-              <button className="modal-cancel" onClick={() => setShowRoomModal(false)}>
+              <button className="modal-cancel" onClick={() => setShowModal(false)}>
                 キャンセル
               </button>
               <button
                 className="modal-submit"
-                onClick={handleCreateRoom}
-                disabled={creatingRoom}
+                onClick={handleModalSubmit}
+                disabled={submitting}
               >
-                {creatingRoom ? "作成中…" : "作成する"}
+                {submitting ? "追加中…" : isTask ? "作業に追加" : "作成する"}
               </button>
             </div>
           </div>

@@ -168,27 +168,15 @@ export async function fetchTasks(): Promise<Task[]> {
 }
 
 export async function fetchMessages(roomId: number): Promise<Message[]> {
-  const messages = await apiFetch<BackendMessage[]>(
+  const messages = await apiFetch<Message[]>(
     `/api/messages?roomId=${roomId}`,
   );
-
-  return messages.map((message) => {
-    const userName = message.user?.name || "User";
-    return {
-      id: message.id,
-      body: message.body,
-      user_name: userName,
-      time_label: formatDateLabel(message.createdAt),
-      avatar_bg: "#E6F1FB",
-      avatar_fg: "#0C447C",
-      avatar_label: avatarLabel(userName),
-      needs_response: message.isRecruiting ?? false,
-    };
-    });
+  // バックエンドがすでにフォーマット済みで返しているのでそのまま使う
+  return messages;
 }
 
-export async function sendMessage(roomId: number, body: string, isRecruiting = false): Promise<void> {
-  await apiFetch("/api/messages", {
+export async function sendMessage(roomId: number, body: string, isRecruiting = false): Promise<Message> {
+  return apiFetch<Message>("/api/messages", {
     method: "POST",
     body: JSON.stringify({ roomId, body, isRecruiting }),
   });
@@ -246,6 +234,12 @@ export async function deleteRoom(roomId: number): Promise<void> {
   await apiFetch(`/api/rooms/${roomId}`, { method: "DELETE" });
 }
 
+export async function createTask(title: string): Promise<void> {
+  await apiFetch("/api/tasks/from-message", {
+    method: "POST",
+    body: JSON.stringify({ title }),
+  });
+}
 export async function login(name: string, password: string): Promise<string> {
   const result = await apiFetch<{ token: string }>("/api/auth/login", {
     method: "POST",
@@ -261,3 +255,5 @@ export async function register(name: string, password: string): Promise<void> {
     body: JSON.stringify({ name, password }),
   });
 }
+
+

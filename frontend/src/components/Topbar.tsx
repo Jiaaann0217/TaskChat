@@ -1,6 +1,11 @@
 import "./Topbar.css";
 
-export default function Topbar() {
+type Props = {
+  userName: string;
+  onLogout: () => void;
+};
+
+export default function Topbar({ userName, onLogout }: Props) {
   return (
     <header className="topbar">
       <div className="topbar-logo">
@@ -23,7 +28,16 @@ export default function Topbar() {
         <i className="ti ti-settings" title="設定" />
       </div>
 
-      <div className="topbar-avatar">—</div>
+      {userName && (
+        <div className="topbar-user">
+          <div className="topbar-avatar">
+            {userName.slice(0, 2).toUpperCase()}
+          </div>
+          <button className="topbar-logout" onClick={onLogout} title="ログアウト">
+            <i className="ti ti-logout" />
+          </button>
+        </div>
+      )}
     </header>
   );
 }

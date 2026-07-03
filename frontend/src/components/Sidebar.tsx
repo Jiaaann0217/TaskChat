@@ -8,11 +8,12 @@ type Props = {
   onDeleteRoom?: () => void;
   userName: string;
   refreshTrigger: number;
+  taskRefreshTrigger: number;
 };
 
 type ContextMenu = { x: number; y: number; roomId: number };
 
-export default function Sidebar({ activeRoomId, onSelectRoom, onDeleteRoom, userName, refreshTrigger }: Props) {
+export default function Sidebar({ activeRoomId, onSelectRoom, onDeleteRoom, userName, refreshTrigger, taskRefreshTrigger }: Props) {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [contextMenu, setContextMenu] = useState<ContextMenu | null>(null);
@@ -20,8 +21,11 @@ export default function Sidebar({ activeRoomId, onSelectRoom, onDeleteRoom, user
 
   useEffect(() => {
     fetchRooms().then(setRooms);
-    fetchTasks().then(setTasks);
   }, [refreshTrigger]);
+
+  useEffect(() => {
+    fetchTasks().then(setTasks);
+  }, [taskRefreshTrigger]);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {

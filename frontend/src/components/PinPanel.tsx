@@ -63,8 +63,8 @@ export default function PinPanel({ roomId, onClose }: Props) {
         {contributions.length === 0 ? (
           <p className="pp-empty">データがありません</p>
         ) : (
-          contributions.map((c) => (
-            <div key={c.user_id} className="contrib-row">
+          contributions.map((c,i) => (
+            <div key={`${c.user_id}-${i}`} className="contrib-row">
               <div
                 className="contrib-av"
                 style={{ background: c.avatar_bg, color: c.avatar_fg }}

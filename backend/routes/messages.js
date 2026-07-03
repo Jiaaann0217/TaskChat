@@ -27,7 +27,7 @@ function formatMessage(msg, index) {
         avatar_bg: color.bg,
         avatar_fg: color.fg,
         time_label: time,
-        needs_response: false, // 今後フラグを追加予定
+        needs_response: msg.isRecruiting ?? false, // 今後フラグを追加予定
         createdAt: msg.createdAt,
     };
 }

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { fetchMessages, sendMessage, createRoom, type Message } from "../api";
+import { fetchMessages, sendMessage, type Message } from "../api";
 import EmptyChat from "./EmptyChat";
 import YarimasuButton from "./YarimasuButton";
 import "./ChatMain.css";
@@ -7,14 +7,14 @@ import "./ChatMain.css";
 type Props = {
   roomId: number | null;
   onStartChat: () => void;
+  onYarimasu: () => void;
   pinPanelOpen: boolean;
   onTogglePin: () => void;
-  onRoomCreated: (roomId: number) => void;
 };
 
 type LocalMessage = Message & { is_recruiting?: boolean };
 
-export default function ChatMain({ roomId, onStartChat, pinPanelOpen, onTogglePin, onRoomCreated }: Props) {
+export default function ChatMain({ roomId, onStartChat, onYarimasu, pinPanelOpen, onTogglePin }: Props) {
   const [messages, setMessages] = useState<LocalMessage[]>([]);
   const [input, setInput] = useState<string>("");
   const [recruiting, setRecruiting] = useState(false);
@@ -95,14 +95,9 @@ export default function ChatMain({ roomId, onStartChat, pinPanelOpen, onTogglePi
     }
   }
 
-  async function handleYarimasu(messageId: number) {
+  function handleYarimasu(messageId: number) {
     setDoneIds((prev) => [...prev, messageId]);
-    try {
-      const newRoom = await createRoom();
-      onRoomCreated(newRoom.id);
-    } catch {
-      // ルーム作成失敗でも対応済みは維持
-    }
+    onYarimasu(); // App.tsx のモーダルを開く
   }
 
   if (!roomId) {
