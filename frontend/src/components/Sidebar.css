@@ -27,6 +27,36 @@
   margin: 6px 0;
 }
 
+.sidebar-sec-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 10px;
+}
+
+.sidebar-add-btn {
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  color: var(--text3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s, color 0.12s;
+}
+
+.sidebar-add-btn:hover {
+  background: var(--surface2);
+  color: var(--blue-mid);
+}
+
+.sidebar-add-btn i {
+  font-size: 15px;
+}
+
 /* ── ナビ項目 ── */
 .nav-item {
   display: flex;
@@ -38,17 +68,25 @@
   transition: background 0.12s;
   position: relative;
 }
-.nav-item:hover { background: var(--surface2); }
+
+.nav-item:hover {
+  background: var(--surface2);
+}
+
 .nav-item.active {
   background: #EBF4FD;
   border-left-color: var(--blue-mid);
 }
+
 .nav-item i {
   font-size: 16px;
   color: var(--text3);
   flex-shrink: 0;
 }
-.nav-item.active i { color: var(--blue-mid); }
+
+.nav-item.active i {
+  color: var(--blue-mid);
+}
 
 /* ホバー時ゴミ箱ボタン */
 .ni-delete-btn {
@@ -67,12 +105,19 @@
   transition: opacity 0.12s, background 0.12s, color 0.12s;
   margin-left: auto;
 }
-.nav-item:hover .ni-delete-btn { opacity: 1; }
+
+.nav-item:hover .ni-delete-btn {
+  opacity: 1;
+}
+
 .ni-delete-btn:hover {
   background: var(--red);
   color: #fff;
 }
-.ni-delete-btn i { font-size: 14px; }
+
+.ni-delete-btn i {
+  font-size: 14px;
+}
 
 /* ── コンテキストメニュー ── */
 .ctx-menu {
@@ -81,7 +126,7 @@
   background: var(--surface);
   border: 1px solid var(--border2);
   border-radius: 10px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   padding: 4px;
   min-width: 180px;
   list-style: none;
@@ -98,12 +143,27 @@
   cursor: pointer;
   transition: background 0.1s;
 }
-.ctx-item i { font-size: 15px; color: var(--text3); }
-.ctx-item:hover { background: var(--surface2); }
 
-.ctx-item--danger { color: var(--red); }
-.ctx-item--danger i { color: var(--red); }
-.ctx-item--danger:hover { background: var(--red-light); }
+.ctx-item i {
+  font-size: 15px;
+  color: var(--text3);
+}
+
+.ctx-item:hover {
+  background: var(--surface2);
+}
+
+.ctx-item--danger {
+  color: var(--red);
+}
+
+.ctx-item--danger i {
+  color: var(--red);
+}
+
+.ctx-item--danger:hover {
+  background: var(--red-light);
+}
 
 .ctx-divider {
   height: 1px;
@@ -116,6 +176,7 @@
   color: var(--text);
   flex: 1;
 }
+
 .nav-item.active .ni-name {
   color: var(--blue-dark);
   font-weight: 500;
@@ -143,7 +204,9 @@
   align-items: center;
   gap: 8px;
   padding: 5px 14px;
+  position: relative;
 }
+
 .t-name {
   font-size: 12px;
   color: var(--text);
@@ -152,13 +215,43 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .t-due {
   font-size: 11px;
   color: var(--text3);
   flex-shrink: 0;
 }
-.task-row.overdue .t-name { color: var(--red); }
-.task-row.overdue .t-due  { color: var(--red); font-weight: 500; }
+
+.task-row.overdue .t-name {
+  color: var(--red);
+}
+
+.task-row.overdue .t-due {
+  color: var(--red);
+  font-weight: 500;
+}
+
+.task-row .ni-delete-btn {
+  opacity: 0;
+}
+.task-row:hover .ni-delete-btn {
+  opacity: 1;
+}
+
+.task-row.clickable {
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.task-row.clickable:hover {
+  background: var(--surface2);
+}
+.task-row.active {
+  background: #EBF4FD;
+}
+.task-row.active .t-name {
+  color: var(--blue-dark);
+  font-weight: 500;
+}
 
 /* ── 自分情報ボックス ── */
 .me-box {
@@ -189,8 +282,16 @@
   flex-shrink: 0;
 }
 
-.me-name { font-size: 13px; font-weight: 500; color: var(--text); }
-.me-role { font-size: 11px; color: var(--text3); }
+.me-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.me-role {
+  font-size: 11px;
+  color: var(--text3);
+}
 
 .me-stats {
   display: grid;
@@ -204,8 +305,19 @@
   border-radius: 8px;
   padding: 6px 8px;
 }
-.me-stat-n { font-size: 18px; font-weight: 500; color: var(--text); line-height: 1; }
-.me-stat-l { font-size: 10px; color: var(--text3); margin-top: 2px; }
+
+.me-stat-n {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1;
+}
+
+.me-stat-l {
+  font-size: 10px;
+  color: var(--text3);
+  margin-top: 2px;
+}
 
 .me-contrib {
   background: var(--surface);
@@ -214,6 +326,7 @@
   padding: 6px 8px;
   margin-top: 6px;
 }
+
 .me-contrib-label {
   font-size: 10px;
   color: var(--text3);
@@ -221,7 +334,11 @@
   display: flex;
   justify-content: space-between;
 }
-.me-contrib-label span { font-weight: 600; color: var(--mint); }
+
+.me-contrib-label span {
+  font-weight: 600;
+  color: var(--mint);
+}
 
 .bar-track {
   height: 5px;
@@ -229,6 +346,7 @@
   border-radius: 999px;
   overflow: hidden;
 }
+
 .bar-fill {
   height: 100%;
   background: var(--mint);
@@ -239,7 +357,7 @@
 .delete-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(10,22,40,0.5);
+  background: rgba(10, 22, 40, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -253,7 +371,7 @@
   border-radius: 14px;
   padding: 24px;
   width: min(340px, calc(100vw - 32px));
-  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -271,7 +389,11 @@
   justify-content: center;
   margin-bottom: 4px;
 }
-.delete-dialog-icon i { font-size: 24px; color: var(--red); }
+
+.delete-dialog-icon i {
+  font-size: 24px;
+  color: var(--red);
+}
 
 .delete-dialog-title {
   font-size: 15px;
@@ -302,7 +424,10 @@
   font: inherit;
   cursor: pointer;
 }
-.delete-cancel:hover { background: var(--border); }
+
+.delete-cancel:hover {
+  background: var(--border);
+}
 
 .delete-confirm {
   flex: 1;
@@ -320,5 +445,11 @@
   gap: 6px;
   transition: background 0.15s;
 }
-.delete-confirm:hover { background: #c73f3e; }
-.delete-confirm i { font-size: 15px; }
+
+.delete-confirm:hover {
+  background: #c73f3e;
+}
+
+.delete-confirm i {
+  font-size: 15px;
+}

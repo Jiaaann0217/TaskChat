@@ -2,15 +2,13 @@ import { useEffect, useState } from "react";
 import { fetchPins, fetchContributions, type Pin, type Contribution } from "../api";
 import "./PinPanel.css";
 
-const TABS = ["重要連絡", "決定事項", "リンク"];
-
 type Props = {
   roomId: number | null;
   onClose: () => void;
+  refreshTrigger: number;
 };
 
-export default function PinPanel({ roomId, onClose }: Props) {
-  const [activeTab, setActiveTab] = useState<number>(0);
+export default function PinPanel({ roomId, onClose, refreshTrigger }: Props) {
   const [pins, setPins] = useState<Pin[]>([]);
   const [contributions, setContributions] = useState<Contribution[]>([]);
 
@@ -18,7 +16,7 @@ export default function PinPanel({ roomId, onClose }: Props) {
     if (!roomId) return;
     fetchPins(roomId).then(setPins);
     fetchContributions().then(setContributions);
-  }, [roomId]);
+  }, [roomId, refreshTrigger]);
 
   return (
     <div className="pin-panel">
@@ -26,18 +24,6 @@ export default function PinPanel({ roomId, onClose }: Props) {
         <i className="ti ti-notebook" />
         <span className="pp-title">ピン止めノート</span>
         <i className="ti ti-layout-sidebar-right pp-close" title="閉じる" onClick={onClose} />
-      </div>
-
-      <div className="pp-tabs">
-        {TABS.map((tab, i) => (
-          <div
-            key={tab}
-            className={`pp-tab ${activeTab === i ? "active" : ""}`}
-            onClick={() => setActiveTab(i)}
-          >
-            {tab}
-          </div>
-        ))}
       </div>
 
       <div className="pp-body">
@@ -63,7 +49,7 @@ export default function PinPanel({ roomId, onClose }: Props) {
         {contributions.length === 0 ? (
           <p className="pp-empty">データがありません</p>
         ) : (
-          contributions.map((c,i) => (
+          contributions.map((c, i) => (
             <div key={`${c.user_id}-${i}`} className="contrib-row">
               <div
                 className="contrib-av"

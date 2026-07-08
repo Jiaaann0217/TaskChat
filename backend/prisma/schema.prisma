@@ -22,6 +22,7 @@ model Room {
   createdAt DateTime  @default(now())
   messages  Message[]
   pins      Pin[]
+  tasks     Task[]
 }
 
 model Message {
@@ -53,4 +54,6 @@ model Task {
   createdAt    DateTime  @default(now())
   assignedTo   User?     @relation(fields: [assignedToId], references: [id])
   assignedToId Int?
+  room         Room?     @relation(fields: [roomId], references: [id])  // ← 追加
+  roomId       Int?
 }
