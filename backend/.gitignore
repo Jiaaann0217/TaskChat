@@ -1,5 +1,6 @@
 .env
 node_modules
+.dist
 "prisma/app.db" 
 "prisma/app.db-journal" 
 "prisma/app.db-wal" 
