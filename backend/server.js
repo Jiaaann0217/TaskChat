@@ -6,7 +6,7 @@ const cors = require("cors");
 const app = express();
 expressWs(app); // expressにWebSocketを追加
 
-app.use(cors({ origin: "http://localhost:5173" }));
+app.use(cors({ origin: true })); // 開発用：どこからでも許可
 app.use(express.json());
 
 // 接続中のクライアントをルームごとに管理
@@ -22,15 +22,15 @@ app.ws("/ws/:roomId", (ws, req) => {
   console.log(`ルーム${roomId}に接続 (${rooms[roomId].size}人)`);
 
   // メッセージを受信したら同じルーム全員に送信
-ws.on("message", (data) => {
-  const message = JSON.parse(data);
-  rooms[roomId].forEach((client) => {
-    // 送信者自身には返さない
-    if (client !== ws && client.readyState === 1) {
-      client.send(JSON.stringify(message));
-    }
+  ws.on("message", (data) => {
+    const message = JSON.parse(data);
+    rooms[roomId].forEach((client) => {
+      // 送信者自身には返さない
+      if (client !== ws && client.readyState === 1) {
+        client.send(JSON.stringify(message));
+      }
+    });
   });
-});
 
   // 切断したらルームから削除
   ws.on("close", () => {
