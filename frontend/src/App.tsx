@@ -19,6 +19,7 @@ export default function App() {
     () => localStorage.getItem("user_name") ?? ""
   );
   const [pinPanelOpen, setPinPanelOpen] = useState(true);
+  const [pinRefreshTrigger, setPinRefreshTrigger] = useState(0);
 
   // 汎用モーダル
   const [modalMode, setModalMode] = useState<ModalMode>("room");
@@ -51,8 +52,12 @@ export default function App() {
         setRoomListVersion((v) => v + 1);
       } else {
         const title = modalInput.trim() || "新しい作業";
-        await createTask(title);
+        const task = await createTask(title);
         setTaskListVersion((v) => v + 1);
+        setRoomListVersion((v) => v + 1);
+        if (task.roomId) {
+          setActiveRoomId(task.roomId);      // ← 作成された作業チャットに自動で移動
+        }
       }
       setError("");
     } catch (err) {
@@ -99,6 +104,7 @@ export default function App() {
         activeRoomId={activeRoomId}
         onSelectRoom={setActiveRoomId}
         onDeleteRoom={() => setActiveRoomId(null)}
+        onStartChat={handleStartChat}
         userName={userName}
         refreshTrigger={roomListVersion}
         taskRefreshTrigger={taskListVersion}
@@ -109,8 +115,9 @@ export default function App() {
         onYarimasu={handleYarimasu}
         pinPanelOpen={pinPanelOpen}
         onTogglePin={() => setPinPanelOpen((o) => !o)}
+        onPinChange={() => setPinRefreshTrigger((v) => v + 1)}
       />
-      {pinPanelOpen && <PinPanel roomId={activeRoomId} onClose={() => setPinPanelOpen(false)} />}
+      {pinPanelOpen && <PinPanel roomId={activeRoomId} onClose={() => setPinPanelOpen(false)} refreshTrigger={pinRefreshTrigger} />}
       {error && <div className="app-error">{error}</div>}
 
       {/* 汎用モーダル */}

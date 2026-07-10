@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { fetchRooms, fetchTasks, deleteRoom, type Room, type Task } from "../api";
+import { fetchRooms, fetchTasks, deleteRoom, deleteTask, type Room, type Task } from "../api";
 import "./Sidebar.css";
 
 type Props = {
   activeRoomId: number | null;
   onSelectRoom: (id: number) => void;
   onDeleteRoom?: () => void;
+  onStartChat: () => void;
   userName: string;
   refreshTrigger: number;
   taskRefreshTrigger: number;
@@ -13,7 +14,7 @@ type Props = {
 
 type ContextMenu = { x: number; y: number; roomId: number };
 
-export default function Sidebar({ activeRoomId, onSelectRoom, onDeleteRoom, userName, refreshTrigger, taskRefreshTrigger }: Props) {
+export default function Sidebar({ activeRoomId, onSelectRoom, onDeleteRoom, onStartChat, userName, refreshTrigger, taskRefreshTrigger }: Props) {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [contextMenu, setContextMenu] = useState<ContextMenu | null>(null);
@@ -53,14 +54,38 @@ export default function Sidebar({ activeRoomId, onSelectRoom, onDeleteRoom, user
     }
   }
 
+  async function handleDeleteTask(task: Task) {
+    try {
+      await deleteTask(task.id);
+      setTasks((prev) => prev.filter((t) => t.id !== task.id));
+      if (task.roomId) {
+        setRooms((prev) => prev.filter((r) => r.id !== task.roomId));   // ← 追加
+      }
+      if (task.roomId && activeRoomId === task.roomId) onDeleteRoom?.();
+    } catch {
+      // エラーは無視
+    }
+  }
+
+  // タスクに紐づいているルームIDの集合（作業チャット）
+  const taskRoomIds = new Set(tasks.map((t) => t.roomId).filter((id): id is number => id !== null));
+
+  // 通常のチャット一覧には作業チャットを表示しない
+  const normalRooms = rooms.filter((r) => !taskRoomIds.has(r.id));
+
   return (
     <aside className="sidebar">
-      <div className="sidebar-sec">チャット</div>
+      <div className="sidebar-sec-row">
+        <div className="sidebar-sec">チャット</div>
+        <button className="sidebar-add-btn" onClick={onStartChat} title="新しいチャット">
+          <i className="ti ti-plus" />
+        </button>
+      </div>
 
-      {rooms.length === 0 ? (
+      {normalRooms.length === 0 ? (
         <p className="sidebar-empty">チャットルームがありません</p>
       ) : (
-        rooms.map((room) => (
+        normalRooms.map((room) => (
           <div
             key={room.id}
             className={`nav-item ${room.id === activeRoomId ? "active" : ""}`}
@@ -93,11 +118,19 @@ export default function Sidebar({ activeRoomId, onSelectRoom, onDeleteRoom, user
         tasks.map((task) => (
           <div
             key={task.id}
-            className={`task-row ${task.overdue ? "overdue" : ""}`}
+            className={`task-row ${task.overdue ? "overdue" : ""} ${task.roomId ? "clickable" : ""} ${task.roomId && task.roomId === activeRoomId ? "active" : ""}`}
+            onClick={() => task.roomId && onSelectRoom(task.roomId)}
           >
             <div className="ni-dot" style={{ background: task.color }} />
             <span className="t-name">{task.title}</span>
             <span className="t-due">{task.due_label}</span>
+            <button
+              className="ni-delete-btn"
+              title="削除"
+              onClick={(e) => { e.stopPropagation(); handleDeleteTask(task); }}
+            >
+              <i className="ti ti-trash" />
+            </button>
           </div>
         ))
       )}

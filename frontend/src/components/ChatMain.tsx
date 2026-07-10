@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { fetchMessages, sendMessage, type Message } from "../api";
+import { fetchMessages, sendMessage, fetchPins, createPin, type Message } from "../api";
 import EmptyChat from "./EmptyChat";
 import YarimasuButton from "./YarimasuButton";
 import "./ChatMain.css";
@@ -10,15 +10,17 @@ type Props = {
   onYarimasu: () => void;
   pinPanelOpen: boolean;
   onTogglePin: () => void;
+  onPinChange: () => void;
 };
 
 type LocalMessage = Message & { is_recruiting?: boolean };
 
-export default function ChatMain({ roomId, onStartChat, onYarimasu, pinPanelOpen, onTogglePin }: Props) {
+export default function ChatMain({ roomId, onStartChat, onYarimasu, pinPanelOpen, onTogglePin, onPinChange }: Props) {
   const [messages, setMessages] = useState<LocalMessage[]>([]);
   const [input, setInput] = useState<string>("");
   const [recruiting, setRecruiting] = useState(false);
   const [doneIds, setDoneIds] = useState<number[]>([]);
+  const [pinnedIds, setPinnedIds] = useState<number[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const ws = useRef<WebSocket | null>(null);
   // 自分が送信したメッセージIDを記録してWS重複受信を防ぐ
@@ -28,11 +30,18 @@ export default function ChatMain({ roomId, onStartChat, onYarimasu, pinPanelOpen
     if (!roomId) return;
 
     fetchMessages(roomId).then(setMessages);
+    fetchPins(roomId).then((pins) => setPinnedIds(pins.map((p) => p.message_id)));
     setRecruiting(false);
 
     // WebSocket接続
+<<<<<<< HEAD
     const wsBase = (import.meta.env.VITE_API_URL ?? window.location.origin).replace(/^http/, "ws");
     ws.current = new WebSocket(`${wsBase}/ws/${roomId}`);
+=======
+    const wsHost = window.location.hostname; // ブラウザが今アクセスしているホスト
+    ws.current = new WebSocket(`ws://${wsHost}:3000/ws/${roomId}`);
+
+>>>>>>> 2afda726a319b44ed59217ea9bc25655809cf108
     ws.current.onmessage = (event: MessageEvent) => {
       const message: LocalMessage = JSON.parse(event.data);
       // 自分が送ったメッセージはすでに画面に追加済みなのでスキップ
@@ -100,6 +109,17 @@ export default function ChatMain({ roomId, onStartChat, onYarimasu, pinPanelOpen
     onYarimasu(); // App.tsx のモーダルを開く
   }
 
+  async function handlePin(messageId: number) {
+    if (!roomId || pinnedIds.includes(messageId)) return;
+    try {
+      await createPin(roomId, messageId);
+      setPinnedIds((prev) => [...prev, messageId]);
+      onPinChange();
+    } catch {
+      // すでにピン止め済みなどのエラーは無視
+    }
+  }
+
   if (!roomId) {
     return (
       <div className="main">
@@ -164,7 +184,11 @@ export default function ChatMain({ roomId, onStartChat, onYarimasu, pinPanelOpen
                   <div className={`msg-bubble ${msg.is_recruiting ? "msg-bubble--recruiting" : ""}`}>
                     {msg.body}
                   </div>
-                  <button className="msg-pin-btn" title="ピン止め">
+                  <button
+                    className={`msg-pin-btn ${pinnedIds.includes(msg.id) ? "pinned" : ""}`}
+                    title={pinnedIds.includes(msg.id) ? "ピン止め済み" : "ピン止め"}
+                    onClick={() => handlePin(msg.id)}
+                  >
                     <i className="ti ti-pin" />
                   </button>
                 </div>

@@ -11,6 +11,7 @@ export type Task = {
   due_label: string;
   color: string;
   overdue: boolean;
+  roomId: number | null;
 };
 
 export type Message = {
@@ -26,6 +27,7 @@ export type Message = {
 
 export type Pin = {
   id: number;
+  message_id: number;
   body: string;
   created_by_name: string;
   date_label: string;
@@ -52,6 +54,7 @@ type BackendTask = {
   title: string;
   dueDate: string | null;
   done: boolean;
+  roomId: number | null;
 };
 
 type BackendMessage = {
@@ -66,6 +69,7 @@ type BackendMessage = {
 
 type BackendPin = {
   id: number;
+  messageId: number;
   createdAt: string;
   message?: {
     body?: string;
@@ -165,6 +169,7 @@ export async function fetchTasks(): Promise<Task[]> {
     due_label: formatDueLabel(task.dueDate),
     color: task.done ? "#9A9A94" : colors[index % colors.length],
     overdue: !task.done && isOverdue(task.dueDate),
+    roomId: task.roomId,
   }));
 }
 
@@ -187,6 +192,7 @@ export async function fetchPins(roomId: number): Promise<Pin[]> {
   const pins = await apiFetch<BackendPin[]>(`/api/pins?roomId=${roomId}`);
   return pins.map((pin) => ({
     id: pin.id,
+    message_id: pin.messageId,
     body: pin.message?.body || "",
     created_by_name: "Pinned",
     date_label: formatDateLabel(pin.createdAt),
@@ -235,12 +241,28 @@ export async function deleteRoom(roomId: number): Promise<void> {
   await apiFetch(`/api/rooms/${roomId}`, { method: "DELETE" });
 }
 
-export async function createTask(title: string): Promise<void> {
-  await apiFetch("/api/tasks/from-message", {
+export async function createTask(title: string): Promise<{ id: number; roomId: number | null }> {
+  const result = await apiFetch<{ success: boolean; task: { id: number; roomId: number | null } }>(
+    "/api/tasks/from-message",
+    {
+      method: "POST",
+      body: JSON.stringify({ title }),
+    }
+  );
+  return result.task;
+}
+
+export async function createPin(roomId: number, messageId: number): Promise<void> {
+  await apiFetch("/api/pins", {
     method: "POST",
-    body: JSON.stringify({ title }),
+    body: JSON.stringify({ roomId, messageId }),
   });
 }
+
+export async function deleteTask(taskId: number): Promise<void> {
+  await apiFetch(`/api/tasks/${taskId}`, { method: "DELETE" });
+}
+
 export async function login(name: string, password: string): Promise<string> {
   const result = await apiFetch<{ token: string }>("/api/auth/login", {
     method: "POST",
