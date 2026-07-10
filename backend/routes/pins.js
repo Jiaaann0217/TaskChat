@@ -18,6 +18,7 @@ router.get("/", auth, async (req, res) => {
         const date = new Date(pin.createdAt);
         return {
             id: pin.id,
+            message_id: pin.messageId,
             body: pin.message.body,
             created_by_name: pin.message.user.name,
             date_label: `${date.getMonth() + 1}/${date.getDate()}`,
