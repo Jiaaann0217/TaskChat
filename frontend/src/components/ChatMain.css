@@ -27,7 +27,11 @@
   justify-content: center;
   flex-shrink: 0;
 }
-.ch-icon i { font-size: 16px; color: var(--blue-mid); }
+
+.ch-icon i {
+  font-size: 16px;
+  color: var(--blue-mid);
+}
 
 .ch-title {
   font-size: 14px;
@@ -36,7 +40,10 @@
   flex: 1;
 }
 
-.ch-members { display: flex; margin-right: 4px; }
+.ch-members {
+  display: flex;
+  margin-right: 4px;
+}
 
 .ch-btn {
   display: flex;
@@ -53,8 +60,16 @@
   transition: background 0.12s, color 0.12s, border-color 0.12s;
   white-space: nowrap;
 }
-.ch-btn i { font-size: 15px; }
-.ch-btn:hover { background: var(--blue-light); color: var(--blue-dark); border-color: var(--blue-mid); }
+
+.ch-btn i {
+  font-size: 15px;
+}
+
+.ch-btn:hover {
+  background: var(--blue-light);
+  color: var(--blue-dark);
+  border-color: var(--blue-mid);
+}
 
 /* ピン止めボタン：アクティブ時に黄色系 */
 .ch-btn--pin-active {
@@ -62,9 +77,32 @@
   color: var(--amber);
   border-color: var(--amber);
 }
+
 .ch-btn--pin-active:hover {
   background: #fde68a;
   color: var(--amber);
+}
+
+.ch-btn--complete {
+  background: var(--green-light);
+  color: var(--green-dark);
+  border-color: var(--green);
+}
+
+.ch-btn--complete:hover {
+  background: var(--green);
+  color: #fff;
+}
+
+.ch-btn--done {
+  background: var(--surface2);
+  color: var(--text3);
+  cursor: default;
+}
+
+.ch-btn--done:hover {
+  background: var(--surface2);
+  color: var(--text3);
 }
 
 /* ── メッセージ一覧 ── */
@@ -76,9 +114,19 @@
   flex-direction: column;
   gap: 16px;
 }
-.messages::-webkit-scrollbar { width: 4px; }
-.messages::-webkit-scrollbar-track { background: transparent; }
-.messages::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 999px; }
+
+.messages::-webkit-scrollbar {
+  width: 4px;
+}
+
+.messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.messages::-webkit-scrollbar-thumb {
+  background: var(--border2);
+  border-radius: 999px;
+}
 
 .chat-empty-inner {
   display: flex;
@@ -88,8 +136,14 @@
   margin-top: 40px;
   color: var(--text3);
 }
-.chat-empty-inner i { font-size: 32px; }
-.chat-empty-inner p { font-size: 13px; }
+
+.chat-empty-inner i {
+  font-size: 32px;
+}
+
+.chat-empty-inner p {
+  font-size: 13px;
+}
 
 /* メッセージ行 */
 .msg {
@@ -100,7 +154,10 @@
   padding: 4px 6px;
   transition: background 0.1s;
 }
-.msg:hover { background: rgba(0,0,0,0.025); }
+
+.msg:hover {
+  background: rgba(0, 0, 0, 0.025);
+}
 
 /* 募集メッセージ行：左ボーダー強調 */
 .msg--recruiting {
@@ -108,7 +165,10 @@
   padding-left: 10px;
   background: #f0fdf4;
 }
-.msg--recruiting:hover { background: #dcfce7; }
+
+.msg--recruiting:hover {
+  background: #dcfce7;
+}
 
 .msg-av {
   width: 34px;
@@ -121,10 +181,13 @@
   font-weight: 700;
   flex-shrink: 0;
   border: 2px solid var(--surface);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.msg-body { flex: 1; min-width: 0; }
+.msg-body {
+  flex: 1;
+  min-width: 0;
+}
 
 .msg-meta {
   display: flex;
@@ -133,6 +196,7 @@
   margin-bottom: 5px;
   flex-wrap: wrap;
 }
+
 .msg-name {
   display: flex;
   align-items: center;
@@ -141,7 +205,12 @@
   font-weight: 600;
   color: var(--text);
 }
-.msg-name i { font-size: 14px; color: var(--text3); }
+
+.msg-name i {
+  font-size: 14px;
+  color: var(--text3);
+}
+
 .msg-time {
   display: flex;
   align-items: center;
@@ -149,7 +218,10 @@
   font-size: 11px;
   color: var(--text3);
 }
-.msg-time i { font-size: 12px; }
+
+.msg-time i {
+  font-size: 12px;
+}
 
 /* 募集バッジ：濃いグリーンで視認性UP */
 .msg-recruiting-badge {
@@ -164,7 +236,10 @@
   padding: 2px 8px;
   letter-spacing: 0.02em;
 }
-.msg-recruiting-badge i { font-size: 12px; }
+
+.msg-recruiting-badge i {
+  font-size: 12px;
+}
 
 /* ── 吹き出しバブル ── */
 .msg-bubble-row {
@@ -185,7 +260,7 @@
   line-height: 1.65;
   white-space: pre-wrap;
   word-break: break-word;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 /* 募集バブル：緑ボーダー */
@@ -212,10 +287,24 @@
   transition: opacity 0.15s, background 0.12s, color 0.12s;
   margin-top: 4px;
 }
-.msg:hover .msg-pin-btn { opacity: 1; }
-.msg-pin-btn:hover { background: var(--amber-light); color: var(--amber); }
-.msg-pin-btn.pinned { opacity: 1; color: var(--amber); }
-.msg-pin-btn i { font-size: 15px; }
+
+.msg:hover .msg-pin-btn {
+  opacity: 1;
+}
+
+.msg-pin-btn:hover {
+  background: var(--amber-light);
+  color: var(--amber);
+}
+
+.msg-pin-btn.pinned {
+  opacity: 1;
+  color: var(--amber);
+}
+
+.msg-pin-btn i {
+  font-size: 15px;
+}
 
 /* ── 入力エリア ── */
 .input-area {
@@ -225,6 +314,7 @@
   flex-shrink: 0;
   transition: border-color 0.2s;
 }
+
 .input-area--recruiting {
   border-top-color: var(--green);
 }
@@ -242,10 +332,18 @@
   font-weight: 500;
   margin-bottom: 8px;
 }
-.recruit-active-bar i { font-size: 15px; flex-shrink: 0; }
-.recruit-active-bar span { flex: 1; }
+
+.recruit-active-bar i {
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.recruit-active-bar span {
+  flex: 1;
+}
+
 .recruit-active-close {
-  background: rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.2);
   border: none;
   border-radius: 5px;
   width: 22px;
@@ -257,8 +355,14 @@
   color: #fff;
   flex-shrink: 0;
 }
-.recruit-active-close:hover { background: rgba(255,255,255,0.35); }
-.recruit-active-close i { font-size: 13px; }
+
+.recruit-active-close:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.recruit-active-close i {
+  font-size: 13px;
+}
 
 .input-row {
   display: flex;
@@ -270,17 +374,26 @@
   padding: 8px 10px;
   transition: border-color 0.15s;
 }
-.input-row:focus-within { border-color: var(--blue-mid); }
-.input-area--recruiting .input-row { border-color: var(--green); }
 
-.input-row > .ti {
+.input-row:focus-within {
+  border-color: var(--blue-mid);
+}
+
+.input-area--recruiting .input-row {
+  border-color: var(--green);
+}
+
+.input-row>.ti {
   font-size: 19px;
   color: var(--text3);
   cursor: pointer;
   flex-shrink: 0;
   transition: color 0.12s;
 }
-.input-row > .ti:hover { color: var(--text2); }
+
+.input-row>.ti:hover {
+  color: var(--text2);
+}
 
 .msg-input {
   flex: 1;
@@ -292,7 +405,10 @@
   resize: none;
   line-height: 1.5;
 }
-.msg-input::placeholder { color: var(--text3); }
+
+.msg-input::placeholder {
+  color: var(--text3);
+}
 
 /* 募集トグル：常時テキスト+アイコンで視認性確保 */
 .recruit-toggle {
@@ -311,18 +427,24 @@
   transition: all 0.15s;
   white-space: nowrap;
 }
-.recruit-toggle i { font-size: 15px; }
+
+.recruit-toggle i {
+  font-size: 15px;
+}
+
 .recruit-toggle:hover {
   border-color: var(--green);
   color: var(--green);
   background: var(--green-light);
 }
+
 /* ON 時：塗り潰しグリーンで誰でも分かる */
 .recruit-toggle--on {
   background: var(--green);
   border-color: var(--green-dark);
   color: #fff;
 }
+
 .recruit-toggle--on:hover {
   background: var(--green-dark);
   color: #fff;
@@ -341,6 +463,17 @@
   flex-shrink: 0;
   transition: background 0.15s, transform 0.1s;
 }
-.send-btn:hover { background: var(--teal); transform: scale(1.05); }
-.send-btn:active { transform: scale(0.97); }
-.send-btn i { font-size: 17px; color: #fff; }
+
+.send-btn:hover {
+  background: var(--teal);
+  transform: scale(1.05);
+}
+
+.send-btn:active {
+  transform: scale(0.97);
+}
+
+.send-btn i {
+  font-size: 17px;
+  color: #fff;
+}

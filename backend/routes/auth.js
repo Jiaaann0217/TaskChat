@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const prisma = require("../prisma/client");
+const auth = require("../middleware/auth");
 
 router.post("/register", async (req, res) => {
     const { name, password } = req.body;
@@ -26,7 +27,35 @@ router.post("/login", async (req, res) => {
         process.env.JWT_SECRET,
         { expiresIn: "7d" }
     );
-    res.json({ token });
+    res.json({ token, name: user.name, avatarColor: user.avatarColor });
+});
+
+// プロフィール更新（名前・アバターの色）
+router.patch("/me", auth, async (req, res) => {
+    const { name, avatarColor } = req.body;
+    try {
+        const user = await prisma.user.update({
+            where: { id: req.user.id },
+            data: {
+                ...(name ? { name } : {}),
+                ...(avatarColor ? { avatarColor } : {}),
+            },
+        });
+
+        // 名前を変更した場合、トークンを新しく発行し直す
+        const token = jwt.sign(
+            { id: user.id, name: user.name },
+            process.env.JWT_SECRET,
+            { expiresIn: "7d" }
+        );
+
+        res.json({ token, name: user.name, avatarColor: user.avatarColor });
+    } catch (e) {
+        if (e.code === "P2002") {
+            return res.status(409).json({ error: "その名前はすでに使われています" });
+        }
+        res.status(500).json({ error: "更新に失敗しました" });
+    }
 });
 
 module.exports = router;

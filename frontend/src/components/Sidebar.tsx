@@ -7,14 +7,17 @@ type Props = {
   onSelectRoom: (id: number) => void;
   onDeleteRoom?: () => void;
   onStartChat: () => void;
+  onAddTask: () => void;
   userName: string;
+  avatarColor: string;        // ← 追加
+  onOpenProfile: () => void;
   refreshTrigger: number;
   taskRefreshTrigger: number;
 };
 
 type ContextMenu = { x: number; y: number; roomId: number };
 
-export default function Sidebar({ activeRoomId, onSelectRoom, onDeleteRoom, onStartChat, userName, refreshTrigger, taskRefreshTrigger }: Props) {
+export default function Sidebar({ activeRoomId, onSelectRoom, onDeleteRoom, onStartChat, onAddTask, userName, avatarColor, onOpenProfile, refreshTrigger, taskRefreshTrigger }: Props) {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [contextMenu, setContextMenu] = useState<ContextMenu | null>(null);
@@ -139,8 +142,8 @@ export default function Sidebar({ activeRoomId, onSelectRoom, onDeleteRoom, onSt
 
       <div className="me-box">
         {userName ? (
-          <div className="me-top">
-            <div className="me-avatar">{userName.slice(0, 2).toUpperCase()}</div>
+          <div className="me-top" onClick={onOpenProfile} style={{ cursor: "pointer" }} title="プロフィール設定">
+            <div className="me-avatar" style={{ background: avatarColor }}>{userName.slice(0, 2).toUpperCase()}</div>
             <div>
               <div className="me-name">{userName}</div>
               <div className="me-role">メンバー</div>

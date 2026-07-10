@@ -3,7 +3,7 @@ import Topbar from "./components/Topbar";
 import Sidebar from "./components/Sidebar";
 import ChatMain from "./components/ChatMain";
 import PinPanel from "./components/PinPanel";
-import { createRoom, createTask, isAuthenticated, login, logout, register } from "./api";
+import { createRoom, createTask, isAuthenticated, login, logout, register, updateProfile } from "./api";
 import "./App.css";
 
 // モーダルの用途
@@ -18,13 +18,22 @@ export default function App() {
   const [userName, setUserName] = useState<string>(
     () => localStorage.getItem("user_name") ?? ""
   );
+  const [avatarColor, setAvatarColor] = useState<string>(
+    () => localStorage.getItem("avatar_color") ?? "#1C7293"
+  );
   const [pinPanelOpen, setPinPanelOpen] = useState(true);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [profileName, setProfileName] = useState("");
+  const [profileColor, setProfileColor] = useState("");
+  const [profileError, setProfileError] = useState("");
+  const [profileSubmitting, setProfileSubmitting] = useState(false);
   const [pinRefreshTrigger, setPinRefreshTrigger] = useState(0);
 
   // 汎用モーダル
   const [modalMode, setModalMode] = useState<ModalMode>("room");
   const [showModal, setShowModal] = useState(false);
   const [modalInput, setModalInput] = useState("");
+  const [modalDueDate, setModalDueDate] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   // チャット開始ボタン → ルーム作成モーダル
@@ -38,6 +47,7 @@ export default function App() {
   function handleYarimasu() {
     setModalMode("task");
     setModalInput("");
+    setModalDueDate("");
     setShowModal(true);
   }
 
@@ -52,7 +62,7 @@ export default function App() {
         setRoomListVersion((v) => v + 1);
       } else {
         const title = modalInput.trim() || "新しい作業";
-        const task = await createTask(title);
+        const task = await createTask(title, modalDueDate || null);
         setTaskListVersion((v) => v + 1);
         setRoomListVersion((v) => v + 1);
         if (task.roomId) {
@@ -68,6 +78,30 @@ export default function App() {
     }
   }
 
+  function handleOpenProfile() {
+    setProfileName(userName);
+    setProfileColor(avatarColor);
+    setProfileError("");
+    setShowProfileModal(true);
+  }
+
+  async function handleProfileSubmit() {
+    setProfileSubmitting(true);
+    setProfileError("");
+    try {
+      const name = profileName.trim();
+      const result = await updateProfile(name || null, profileColor || null);
+      setUserName(result.name);
+      setAvatarColor(result.avatarColor);
+      localStorage.setItem("user_name", result.name);
+      setShowProfileModal(false);
+    } catch (err) {
+      setProfileError(err instanceof Error ? err.message : "更新に失敗しました");
+    } finally {
+      setProfileSubmitting(false);
+    }
+  }
+
   function handleLogout() {
     logout();
     localStorage.removeItem("user_name");
@@ -77,17 +111,19 @@ export default function App() {
   }
 
   async function handleLogin(name: string, password: string) {
-    await login(name, password);
-    setUserName(name);
-    localStorage.setItem("user_name", name);
+    const result = await login(name, password);
+    setUserName(result.name);
+    setAvatarColor(result.avatarColor);
+    localStorage.setItem("user_name", result.name);
     setAuthenticated(true);
   }
 
   async function handleRegister(name: string, password: string) {
     await register(name, password);
-    await login(name, password);
-    setUserName(name);
-    localStorage.setItem("user_name", name);
+    const result = await login(name, password);
+    setUserName(result.name);
+    setAvatarColor(result.avatarColor);
+    localStorage.setItem("user_name", result.name);
     setAuthenticated(true);
   }
 
@@ -99,13 +135,16 @@ export default function App() {
 
   return (
     <div className={`app ${pinPanelOpen ? "pin-open" : "pin-closed"}`}>
-      <Topbar userName={userName} onLogout={handleLogout} />
+      <Topbar userName={userName} avatarColor={avatarColor} onLogout={handleLogout} onOpenProfile={handleOpenProfile} />
       <Sidebar
         activeRoomId={activeRoomId}
         onSelectRoom={setActiveRoomId}
         onDeleteRoom={() => setActiveRoomId(null)}
         onStartChat={handleStartChat}
+        onAddTask={handleYarimasu}
         userName={userName}
+        avatarColor={avatarColor}
+        onOpenProfile={handleOpenProfile}
         refreshTrigger={roomListVersion}
         taskRefreshTrigger={taskListVersion}
       />
@@ -116,6 +155,7 @@ export default function App() {
         pinPanelOpen={pinPanelOpen}
         onTogglePin={() => setPinPanelOpen((o) => !o)}
         onPinChange={() => setPinRefreshTrigger((v) => v + 1)}
+        onTaskComplete={() => setTaskListVersion((v) => v + 1)}
       />
       {pinPanelOpen && <PinPanel roomId={activeRoomId} onClose={() => setPinPanelOpen(false)} refreshTrigger={pinRefreshTrigger} />}
       {error && <div className="app-error">{error}</div>}
@@ -143,6 +183,17 @@ export default function App() {
               autoFocus
               maxLength={40}
             />
+            {isTask && (
+              <label className="auth-field">
+                <span>期限（任意）</span>
+                <input
+                  className="modal-input"
+                  type="date"
+                  value={modalDueDate}
+                  onChange={(e) => setModalDueDate(e.target.value)}
+                />
+              </label>
+            )}
             <div className="modal-actions">
               <button className="modal-cancel" onClick={() => setShowModal(false)}>
                 キャンセル
@@ -153,6 +204,46 @@ export default function App() {
                 disabled={submitting}
               >
                 {submitting ? "追加中…" : isTask ? "作業に追加" : "作成する"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showProfileModal && (
+        <div className="modal-overlay" onClick={() => setShowProfileModal(false)}>
+          <div className="modal-panel" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <i className="ti ti-user-circle" />
+              <span>プロフィール設定</span>
+            </div>
+            <p className="modal-sub">名前とアイコンの色を変更できます</p>
+            <input
+              className="modal-input"
+              type="text"
+              placeholder="名前"
+              value={profileName}
+              onChange={(e) => setProfileName(e.target.value)}
+              maxLength={20}
+            />
+            <div className="color-picker-row">
+              {["#1C7293", "#378ADD", "#02C39A", "#7F77DD", "#E24B4A", "#D97706"].map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  className={`color-swatch ${profileColor === c ? "selected" : ""}`}
+                  style={{ background: c }}
+                  onClick={() => setProfileColor(c)}
+                />
+              ))}
+            </div>
+            {profileError && <p className="auth-error">{profileError}</p>}
+            <div className="modal-actions">
+              <button className="modal-cancel" onClick={() => setShowProfileModal(false)}>
+                キャンセル
+              </button>
+              <button className="modal-submit" onClick={handleProfileSubmit} disabled={profileSubmitting}>
+                {profileSubmitting ? "保存中…" : "保存する"}
               </button>
             </div>
           </div>

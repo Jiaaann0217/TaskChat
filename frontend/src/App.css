@@ -5,8 +5,14 @@
   position: relative;
   transition: grid-template-columns 0.22s ease;
 }
-.app.pin-open   { grid-template-columns: 224px 1fr 248px; }
-.app.pin-closed { grid-template-columns: 224px 1fr 0px; }
+
+.app.pin-open {
+  grid-template-columns: 224px 1fr 248px;
+}
+
+.app.pin-closed {
+  grid-template-columns: 224px 1fr 0px;
+}
 
 .app-error {
   position: fixed;
@@ -143,7 +149,7 @@
   border-radius: 14px;
   padding: 24px;
   width: min(380px, calc(100vw - 32px));
-  box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -157,6 +163,7 @@
   font-weight: 600;
   color: var(--text);
 }
+
 .modal-header i {
   font-size: 20px;
   color: var(--blue-mid);
@@ -180,6 +187,7 @@
   outline: none;
   transition: border-color 0.15s;
 }
+
 .modal-input:focus {
   border-color: var(--blue-mid);
   background: var(--surface);
@@ -203,7 +211,10 @@
   cursor: pointer;
   transition: background 0.12s;
 }
-.modal-cancel:hover { background: var(--border); }
+
+.modal-cancel:hover {
+  background: var(--border);
+}
 
 .modal-submit {
   height: 36px;
@@ -217,5 +228,35 @@
   cursor: pointer;
   transition: background 0.15s;
 }
-.modal-submit:hover { background: var(--teal); }
-.modal-submit:disabled { opacity: 0.7; cursor: wait; }
+
+.color-picker-row {
+  display: flex;
+  gap: 8px;
+  padding: 2px 0;
+}
+
+.color-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.12s, border-color 0.12s;
+}
+
+.color-swatch:hover {
+  transform: scale(1.1);
+}
+
+.color-swatch.selected {
+  border-color: var(--text);
+}
+
+.modal-submit:hover {
+  background: var(--teal);
+}
+
+.modal-submit:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}

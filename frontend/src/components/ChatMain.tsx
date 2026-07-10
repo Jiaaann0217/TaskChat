@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { fetchMessages, sendMessage, fetchPins, createPin, type Message } from "../api";
+import { fetchMessages, sendMessage, fetchPins, createPin, fetchTaskByRoom, completeTask, type Message, type RoomTask } from "../api";
 import EmptyChat from "./EmptyChat";
 import YarimasuButton from "./YarimasuButton";
 import "./ChatMain.css";
@@ -11,16 +11,18 @@ type Props = {
   pinPanelOpen: boolean;
   onTogglePin: () => void;
   onPinChange: () => void;
+  onTaskComplete: () => void;
 };
 
 type LocalMessage = Message & { is_recruiting?: boolean };
 
-export default function ChatMain({ roomId, onStartChat, onYarimasu, pinPanelOpen, onTogglePin, onPinChange }: Props) {
+export default function ChatMain({ roomId, onStartChat, onYarimasu, pinPanelOpen, onTogglePin, onPinChange, onTaskComplete }: Props) {
   const [messages, setMessages] = useState<LocalMessage[]>([]);
   const [input, setInput] = useState<string>("");
   const [recruiting, setRecruiting] = useState(false);
   const [doneIds, setDoneIds] = useState<number[]>([]);
   const [pinnedIds, setPinnedIds] = useState<number[]>([]);
+  const [roomTask, setRoomTask] = useState<RoomTask | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const ws = useRef<WebSocket | null>(null);
   // 自分が送信したメッセージIDを記録してWS重複受信を防ぐ
@@ -31,6 +33,7 @@ export default function ChatMain({ roomId, onStartChat, onYarimasu, pinPanelOpen
 
     fetchMessages(roomId).then(setMessages);
     fetchPins(roomId).then((pins) => setPinnedIds(pins.map((p) => p.message_id)));
+    fetchTaskByRoom(roomId).then(setRoomTask);
     setRecruiting(false);
 
     // WebSocket接続
@@ -115,6 +118,18 @@ export default function ChatMain({ roomId, onStartChat, onYarimasu, pinPanelOpen
     }
   }
 
+  async function handleCompleteTask() {
+    if (!roomTask || roomTask.done) return;
+    try {
+      await completeTask(roomTask.id);
+      setRoomTask({ ...roomTask, done: true });
+      onTaskComplete();   // サイドバーの作業一覧を更新
+      onPinChange();      // 貢献度パネルを更新
+    } catch {
+      // エラーは無視
+    }
+  }
+
   if (!roomId) {
     return (
       <div className="main">
@@ -136,6 +151,16 @@ export default function ChatMain({ roomId, onStartChat, onYarimasu, pinPanelOpen
           <i className={`ti ${pinPanelOpen ? "ti-pin-filled" : "ti-pin"}`} />
           <span>{pinPanelOpen ? "ピン止め中" : "ピン止め"}</span>
         </button>
+        {roomTask && (
+          <button
+            className={`ch-btn ${roomTask.done ? "ch-btn--done" : "ch-btn--complete"}`}
+            onClick={handleCompleteTask}
+            disabled={roomTask.done}
+          >
+            <i className={`ti ${roomTask.done ? "ti-check" : "ti-flag-3"}`} />
+            <span>{roomTask.done ? "完了済み" : "作業完了"}</span>
+          </button>
+        )}
         <button className="ch-btn">
           <i className="ti ti-layout-columns" />
           <span>作業を選択</span>

@@ -45,14 +45,31 @@ router.get("/", auth, async (req, res) => {
 // メッセージ送信
 router.post("/", auth, async (req, res) => {
     const { roomId, body } = req.body;
+    const roomIdNum = Number(roomId);
+
     const msg = await prisma.message.create({
         data: {
             body,
             userId: req.user.id,
-            roomId: Number(roomId),
+            roomId: roomIdNum,
         },
         include: { user: { select: { name: true } } },
     });
+
+    // このルームが作業チャット（Taskに紐づくRoom）なら参加記録を作成
+    const task = await prisma.task.findFirst({ where: { roomId: roomIdNum } });
+    if (task) {
+        await prisma.contributionLog.upsert({
+            where: { userId_roomId: { userId: req.user.id, roomId: roomIdNum } },
+            update: {},
+            create: {
+                userId: req.user.id,
+                roomId: roomIdNum,
+                done: task.done,
+            },
+        });
+    }
+
     res.json(formatMessage(msg));
 });
 

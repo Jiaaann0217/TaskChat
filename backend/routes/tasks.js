@@ -42,12 +42,35 @@ router.post("/from-message", auth, async (req, res) => {
     res.json({ success: true, task, room });
 });
 
-// タスク完了（完了ボタン）
+// タスク完了（完了ボタン）→ 参加者の記録をdone:trueに更新
 router.patch("/:id/done", auth, async (req, res) => {
     const task = await prisma.task.update({
         where: { id: Number(req.params.id) },
         data: { done: true },
     });
+
+    if (task.roomId) {
+        const participants = await prisma.message.findMany({
+            where: { roomId: task.roomId },
+            select: { userId: true },
+            distinct: ["userId"],
+        });
+
+        await Promise.all(
+            participants.map((p) =>
+                prisma.contributionLog.upsert({
+                    where: { userId_roomId: { userId: p.userId, roomId: task.roomId } },
+                    update: { done: true },
+                    create: {
+                        userId: p.userId,
+                        roomId: task.roomId,
+                        done: true,
+                    },
+                })
+            )
+        );
+    }
+
     res.json(task);
 });
 
@@ -74,6 +97,13 @@ router.delete("/:id", auth, async (req, res) => {
         console.error(e);
         res.status(500).json({ error: "削除に失敗しました" });
     }
+});
+
+// ルームIDから紐づくタスクを取得（作業チャット用）
+router.get("/by-room/:roomId", auth, async (req, res) => {
+    const roomId = Number(req.params.roomId);
+    const task = await prisma.task.findFirst({ where: { roomId } });
+    res.json(task);
 });
 
 module.exports = router;
