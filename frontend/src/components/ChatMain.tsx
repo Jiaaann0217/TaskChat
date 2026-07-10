@@ -34,14 +34,8 @@ export default function ChatMain({ roomId, onStartChat, onYarimasu, pinPanelOpen
     setRecruiting(false);
 
     // WebSocket接続
-<<<<<<< HEAD
     const wsBase = (import.meta.env.VITE_API_URL ?? window.location.origin).replace(/^http/, "ws");
     ws.current = new WebSocket(`${wsBase}/ws/${roomId}`);
-=======
-    const wsHost = window.location.hostname; // ブラウザが今アクセスしているホスト
-    ws.current = new WebSocket(`ws://${wsHost}:3000/ws/${roomId}`);
-
->>>>>>> 2afda726a319b44ed59217ea9bc25655809cf108
     ws.current.onmessage = (event: MessageEvent) => {
       const message: LocalMessage = JSON.parse(event.data);
       // 自分が送ったメッセージはすでに画面に追加済みなのでスキップ
