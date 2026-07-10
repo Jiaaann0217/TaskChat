@@ -81,6 +81,7 @@ type BackendContribution = {
 };
 
 const colors = ["#378ADD", "#02C39A", "#7F77DD", "#E24B4A"];
+const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
 function getToken() {
   return localStorage.getItem("token");
@@ -97,7 +98,7 @@ export function logout() {
 async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getToken();
   const headers = new Headers(options.headers);
-
+  
   if (!headers.has("Content-Type") && options.body) {
     headers.set("Content-Type", "application/json");
   }
@@ -106,7 +107,7 @@ async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> 
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  const res = await fetch(path, { ...options, headers });
+  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
 
   if (!res.ok) {
     const message = await res.text();

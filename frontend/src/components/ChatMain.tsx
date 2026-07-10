@@ -31,8 +31,8 @@ export default function ChatMain({ roomId, onStartChat, onYarimasu, pinPanelOpen
     setRecruiting(false);
 
     // WebSocket接続
-    ws.current = new WebSocket(`ws://localhost:3000/ws/${roomId}`);
-
+    const wsBase = (import.meta.env.VITE_API_URL ?? window.location.origin).replace(/^http/, "ws");
+    ws.current = new WebSocket(`${wsBase}/ws/${roomId}`);
     ws.current.onmessage = (event: MessageEvent) => {
       const message: LocalMessage = JSON.parse(event.data);
       // 自分が送ったメッセージはすでに画面に追加済みなのでスキップ
