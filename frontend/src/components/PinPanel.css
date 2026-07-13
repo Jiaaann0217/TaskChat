@@ -16,9 +16,22 @@
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
-.pp-header i { font-size: 18px; color: var(--text3); }
-.pp-title { font-size: 14px; font-weight: 500; color: var(--text); flex: 1; }
-.pp-close { cursor: pointer; }
+
+.pp-header i {
+  font-size: 18px;
+  color: var(--text3);
+}
+
+.pp-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  flex: 1;
+}
+
+.pp-close {
+  cursor: pointer;
+}
 
 /* ── タブ ── */
 .pp-tabs {
@@ -26,6 +39,7 @@
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
+
 .pp-tab {
   flex: 1;
   text-align: center;
@@ -36,12 +50,16 @@
   border-bottom: 2px solid transparent;
   transition: color 0.12s;
 }
+
 .pp-tab.active {
   color: var(--blue-mid);
   border-bottom-color: var(--blue-mid);
   font-weight: 500;
 }
-.pp-tab:hover:not(.active) { color: var(--text2); }
+
+.pp-tab:hover:not(.active) {
+  color: var(--text2);
+}
 
 /* ── ピンカード一覧 ── */
 .pp-body {
@@ -52,8 +70,15 @@
   flex-direction: column;
   gap: 8px;
 }
-.pp-body::-webkit-scrollbar { width: 4px; }
-.pp-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+
+.pp-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.pp-body::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
 
 .pp-empty {
   font-size: 12px;
@@ -68,7 +93,20 @@
   background: var(--surface);
   transition: border-color 0.12s;
 }
-.pin-card:hover { border-color: var(--border2); }
+
+.pin-card--clickable {
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.pin-card--clickable:hover {
+  border-color: var(--blue-mid);
+  background: var(--blue-light);
+}
+
+.pin-card:hover {
+  border-color: var(--border2);
+}
 
 .pin-card-tag {
   display: flex;
@@ -81,10 +119,22 @@
   letter-spacing: 0.05em;
   margin-bottom: 5px;
 }
-.pin-card-tag i { font-size: 12px; }
 
-.pin-card-text { font-size: 12px; color: var(--text); line-height: 1.55; }
-.pin-card-meta { font-size: 11px; color: var(--text3); margin-top: 6px; }
+.pin-card-tag i {
+  font-size: 12px;
+}
+
+.pin-card-text {
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.55;
+}
+
+.pin-card-meta {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 6px;
+}
 
 /* ── 貢献度セクション ── */
 .contrib-section {
@@ -92,6 +142,7 @@
   border-top: 1px solid var(--border);
   flex-shrink: 0;
 }
+
 .contrib-head {
   font-size: 11px;
   font-weight: 600;
@@ -107,6 +158,7 @@
   gap: 8px;
   margin-bottom: 7px;
 }
+
 .contrib-av {
   width: 20px;
   height: 20px;
@@ -118,12 +170,14 @@
   font-weight: 600;
   flex-shrink: 0;
 }
+
 .contrib-name {
   font-size: 11px;
   color: var(--text2);
   width: 28px;
   flex-shrink: 0;
 }
+
 .c-track {
   flex: 1;
   height: 6px;
@@ -132,7 +186,12 @@
   overflow: hidden;
   border: 1px solid var(--border);
 }
-.c-fill { height: 100%; border-radius: 999px; }
+
+.c-fill {
+  height: 100%;
+  border-radius: 999px;
+}
+
 .contrib-n {
   font-size: 11px;
   color: var(--text2);

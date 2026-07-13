@@ -6,6 +6,7 @@ const auth = require("../middleware/auth");
 // タスク一覧
 router.get("/", auth, async (req, res) => {
     const tasks = await prisma.task.findMany({
+        where: { room: { workspaceId: req.user.workspaceId } },
         orderBy: { dueDate: "asc" },
         include: { assignedTo: { select: { name: true } } },
     });

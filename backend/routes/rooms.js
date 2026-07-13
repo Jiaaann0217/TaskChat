@@ -6,6 +6,7 @@ const auth = require("../middleware/auth");
 // ルーム一覧
 router.get("/", auth, async (req, res) => {
     const rooms = await prisma.room.findMany({
+        where: { workspaceId: req.user.workspaceId },
         orderBy: { createdAt: "asc" },
     });
     res.json(rooms);
@@ -14,7 +15,7 @@ router.get("/", auth, async (req, res) => {
 // ルーム作成（チャット開始）
 router.post("/", auth, async (req, res) => {
     const room = await prisma.room.create({
-        data: { name: req.body.name },
+        data: { name: req.body.name, workspaceId: req.user.workspaceId },
     });
     res.json(room);
 });

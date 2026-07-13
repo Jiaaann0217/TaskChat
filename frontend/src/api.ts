@@ -67,15 +67,6 @@ type BackendMessage = {
   };
 };
 
-type BackendPin = {
-  id: number;
-  messageId: number;
-  createdAt: string;
-  message?: {
-    body?: string;
-  };
-};
-
 type BackendContribution = {
   id: number;
   name: string;
@@ -98,12 +89,14 @@ export function isAuthenticated() {
 export function logout() {
   localStorage.removeItem("token");
   localStorage.removeItem("avatar_color");
+  localStorage.removeItem("workspace_name");
+  localStorage.removeItem("workspace_code");
 }
 
 async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getToken();
   const headers = new Headers(options.headers);
-  
+
   if (!headers.has("Content-Type") && options.body) {
     headers.set("Content-Type", "application/json");
   }
@@ -205,14 +198,7 @@ export async function sendMessage(roomId: number, body: string, isRecruiting = f
 }
 
 export async function fetchPins(roomId: number): Promise<Pin[]> {
-  const pins = await apiFetch<BackendPin[]>(`/api/pins?roomId=${roomId}`);
-  return pins.map((pin) => ({
-    id: pin.id,
-    message_id: pin.messageId,
-    body: pin.message?.body || "",
-    created_by_name: "Pinned",
-    date_label: formatDateLabel(pin.createdAt),
-  }));
+  return apiFetch<Pin[]>(`/api/pins?roomId=${roomId}`);
 }
 
 export async function fetchContributions(): Promise<Contribution[]> {
@@ -276,17 +262,26 @@ export async function deleteTask(taskId: number): Promise<void> {
   await apiFetch(`/api/tasks/${taskId}`, { method: "DELETE" });
 }
 
-export async function login(name: string, password: string): Promise<{ name: string; avatarColor: string }> {
-  const result = await apiFetch<{ token: string; name: string; avatarColor: string }>(
-    "/api/auth/login",
-    {
-      method: "POST",
-      body: JSON.stringify({ name, password }),
-    }
-  );
+export async function login(
+  name: string,
+  password: string,
+  workspaceCode: string
+): Promise<{ name: string; avatarColor: string; workspaceName: string; workspaceCode: string }> {
+  const result = await apiFetch<{
+    token: string;
+    name: string;
+    avatarColor: string;
+    workspaceName: string;
+    workspaceCode: string;
+  }>("/api/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ name, password, workspaceCode }),
+  });
   localStorage.setItem("token", result.token);
   localStorage.setItem("avatar_color", result.avatarColor);
-  return { name: result.name, avatarColor: result.avatarColor };
+  localStorage.setItem("workspace_name", result.workspaceName);
+  localStorage.setItem("workspace_code", result.workspaceCode);
+  return result;
 }
 
 export async function updateProfile(
@@ -305,11 +300,22 @@ export async function updateProfile(
   return { name: result.name, avatarColor: result.avatarColor };
 }
 
-export async function register(name: string, password: string): Promise<void> {
+export async function register(name: string, password: string, workspaceCode: string): Promise<void> {
   await apiFetch("/api/auth/register", {
     method: "POST",
-    body: JSON.stringify({ name, password }),
+    body: JSON.stringify({ name, password, workspaceCode }),
   });
+}
+
+export async function createWorkspace(name: string): Promise<{ id: number; name: string; code: string }> {
+  return apiFetch("/api/auth/workspaces", {
+    method: "POST",
+    body: JSON.stringify({ name }),
+  });
+}
+
+export async function findWorkspace(code: string): Promise<{ id: number; name: string; code: string }> {
+  return apiFetch(`/api/auth/workspaces/${code}`);
 }
 
 

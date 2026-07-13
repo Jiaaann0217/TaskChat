@@ -12,18 +12,25 @@ type Props = {
   onTogglePin: () => void;
   onPinChange: () => void;
   onTaskComplete: () => void;
+  searchQuery: string;
+  searchToken: number;
+  jumpMessageId: number | null;
+  jumpToken: number;
 };
 
 type LocalMessage = Message & { is_recruiting?: boolean };
 
-export default function ChatMain({ roomId, onStartChat, onYarimasu, pinPanelOpen, onTogglePin, onPinChange, onTaskComplete }: Props) {
+export default function ChatMain({ roomId, onStartChat, onYarimasu, pinPanelOpen, onTogglePin, onPinChange, onTaskComplete, searchQuery, searchToken, jumpMessageId, jumpToken }: Props) {
   const [messages, setMessages] = useState<LocalMessage[]>([]);
   const [input, setInput] = useState<string>("");
   const [recruiting, setRecruiting] = useState(false);
   const [doneIds, setDoneIds] = useState<number[]>([]);
   const [pinnedIds, setPinnedIds] = useState<number[]>([]);
   const [roomTask, setRoomTask] = useState<RoomTask | null>(null);
+  const [highlightedId, setHighlightedId] = useState<number | null>(null);
+  const [searchNotFound, setSearchNotFound] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messageRefs = useRef<Record<number, HTMLDivElement | null>>({});
   const ws = useRef<WebSocket | null>(null);
   // 自分が送信したメッセージIDを記録してWS重複受信を防ぐ
   const sentIds = useRef<Set<number>>(new Set());
@@ -61,6 +68,33 @@ export default function ChatMain({ roomId, onStartChat, onYarimasu, pinPanelOpen
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  useEffect(() => {
+    if (!searchQuery) return;
+
+    const found = [...messages].reverse().find((m) => m.body.includes(searchQuery));
+
+    if (found) {
+      setSearchNotFound(false);
+      setHighlightedId(found.id);
+      messageRefs.current[found.id]?.scrollIntoView({ behavior: "smooth", block: "center" });
+      const timer = setTimeout(() => setHighlightedId(null), 2000);
+      return () => clearTimeout(timer);
+    } else {
+      setSearchNotFound(true);
+      const timer = setTimeout(() => setSearchNotFound(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [searchToken]);
+
+  useEffect(() => {
+    if (!jumpMessageId) return;
+
+    setHighlightedId(jumpMessageId);
+    messageRefs.current[jumpMessageId]?.scrollIntoView({ behavior: "smooth", block: "center" });
+    const timer = setTimeout(() => setHighlightedId(null), 2000);
+    return () => clearTimeout(timer);
+  }, [jumpToken]);
 
   async function handleSend() {
     const text = input.trim();
@@ -160,14 +194,16 @@ export default function ChatMain({ roomId, onStartChat, onYarimasu, pinPanelOpen
             <span>{roomTask.done ? "完了済み" : "作業完了"}</span>
           </button>
         )}
-        <button className="ch-btn">
-          <i className="ti ti-layout-columns" />
-          <span>作業を選択</span>
-        </button>
       </div>
 
       {/* メッセージ一覧 */}
       <div className="messages">
+        {searchNotFound && (
+          <div className="search-not-found-toast">
+            <i className="ti ti-alert-circle" />
+            <span>「{searchQuery}」を含む発言は見つかりませんでした</span>
+          </div>
+        )}
         {messages.length === 0 ? (
           <div className="chat-empty-inner">
             <i className="ti ti-message-off" />
@@ -175,7 +211,11 @@ export default function ChatMain({ roomId, onStartChat, onYarimasu, pinPanelOpen
           </div>
         ) : (
           messages.map((msg) => (
-            <div key={msg.id} className={`msg ${msg.is_recruiting ? "msg--recruiting" : ""}`}>
+            <div
+              key={msg.id}
+              ref={(el) => { messageRefs.current[msg.id] = el; }}
+              className={`msg ${msg.is_recruiting ? "msg--recruiting" : ""} ${highlightedId === msg.id ? "msg--highlighted" : ""}`}
+            >
               <div
                 className="msg-av"
                 style={{ background: msg.avatar_bg, color: msg.avatar_fg }}
@@ -237,7 +277,6 @@ export default function ChatMain({ roomId, onStartChat, onYarimasu, pinPanelOpen
           </div>
         )}
         <div className="input-row">
-          <i className="ti ti-paperclip" title="ファイルを添付" />
           <textarea
             className="msg-input"
             placeholder={recruiting ? "募集内容を入力… (Enter で送信)" : "メッセージを入力… (Enter で送信)"}
@@ -254,7 +293,6 @@ export default function ChatMain({ roomId, onStartChat, onYarimasu, pinPanelOpen
             <i className={`ti ${recruiting ? "ti-user-check" : "ti-speakerphone"}`} />
             <span>{recruiting ? "募集中" : "募集"}</span>
           </button>
-          <i className="ti ti-mood-smile" title="絵文字を追加" />
           <button className="send-btn" onClick={handleSend} title="送信 (Enter)">
             <i className="ti ti-send" />
           </button>

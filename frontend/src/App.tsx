@@ -3,7 +3,7 @@ import Topbar from "./components/Topbar";
 import Sidebar from "./components/Sidebar";
 import ChatMain from "./components/ChatMain";
 import PinPanel from "./components/PinPanel";
-import { createRoom, createTask, isAuthenticated, login, logout, register, updateProfile } from "./api";
+import { createRoom, createTask, isAuthenticated, login, logout, register, updateProfile, createWorkspace } from "./api";
 import "./App.css";
 
 // モーダルの用途
@@ -22,6 +22,12 @@ export default function App() {
     () => localStorage.getItem("avatar_color") ?? "#1C7293"
   );
   const [pinPanelOpen, setPinPanelOpen] = useState(true);
+  const [showSearchModal, setShowSearchModal] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");   // ChatMainに実際に渡す確定した検索語
+  const [searchToken, setSearchToken] = useState(0);     // 同じ語を再検索した時にも反応させるためのトリガー
+  const [jumpMessageId, setJumpMessageId] = useState<number | null>(null);
+  const [jumpToken, setJumpToken] = useState(0);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [profileName, setProfileName] = useState("");
   const [profileColor, setProfileColor] = useState("");
@@ -78,6 +84,24 @@ export default function App() {
     }
   }
 
+  function handleOpenSearch() {
+    setSearchInput("");
+    setShowSearchModal(true);
+  }
+
+  function handleRunSearch() {
+    const q = searchInput.trim();
+    if (!q) return;
+    setSearchQuery(q);
+    setSearchToken((v) => v + 1);
+    setShowSearchModal(false);
+  }
+
+  function handleJumpToMessage(messageId: number) {
+    setJumpMessageId(messageId);
+    setJumpToken((v) => v + 1);
+  }
+
   function handleOpenProfile() {
     setProfileName(userName);
     setProfileColor(avatarColor);
@@ -110,17 +134,17 @@ export default function App() {
     setActiveRoomId(null);
   }
 
-  async function handleLogin(name: string, password: string) {
-    const result = await login(name, password);
+  async function handleLogin(name: string, password: string, workspaceCode: string) {
+    const result = await login(name, password, workspaceCode);
     setUserName(result.name);
     setAvatarColor(result.avatarColor);
     localStorage.setItem("user_name", result.name);
     setAuthenticated(true);
   }
 
-  async function handleRegister(name: string, password: string) {
-    await register(name, password);
-    const result = await login(name, password);
+  async function handleRegister(name: string, password: string, workspaceCode: string) {
+    await register(name, password, workspaceCode);
+    const result = await login(name, password, workspaceCode);
     setUserName(result.name);
     setAvatarColor(result.avatarColor);
     localStorage.setItem("user_name", result.name);
@@ -135,7 +159,7 @@ export default function App() {
 
   return (
     <div className={`app ${pinPanelOpen ? "pin-open" : "pin-closed"}`}>
-      <Topbar userName={userName} avatarColor={avatarColor} onLogout={handleLogout} onOpenProfile={handleOpenProfile} />
+      <Topbar userName={userName} avatarColor={avatarColor} onLogout={handleLogout} onOpenProfile={handleOpenProfile} onOpenSearch={handleOpenSearch} />
       <Sidebar
         activeRoomId={activeRoomId}
         onSelectRoom={setActiveRoomId}
@@ -156,8 +180,12 @@ export default function App() {
         onTogglePin={() => setPinPanelOpen((o) => !o)}
         onPinChange={() => setPinRefreshTrigger((v) => v + 1)}
         onTaskComplete={() => setTaskListVersion((v) => v + 1)}
+        searchQuery={searchQuery}
+        searchToken={searchToken}
+        jumpMessageId={jumpMessageId}
+        jumpToken={jumpToken}
       />
-      {pinPanelOpen && <PinPanel roomId={activeRoomId} onClose={() => setPinPanelOpen(false)} refreshTrigger={pinRefreshTrigger} />}
+      {pinPanelOpen && <PinPanel roomId={activeRoomId} onClose={() => setPinPanelOpen(false)} refreshTrigger={pinRefreshTrigger} onJumpToMessage={handleJumpToMessage} />}
       {error && <div className="app-error">{error}</div>}
 
       {/* 汎用モーダル */}
@@ -210,6 +238,35 @@ export default function App() {
         </div>
       )}
 
+      {showSearchModal && (
+        <div className="modal-overlay" onClick={() => setShowSearchModal(false)}>
+          <div className="modal-panel" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <i className="ti ti-search" />
+              <span>メッセージを検索</span>
+            </div>
+            <p className="modal-sub">このチャット内から検索します</p>
+            <input
+              className="modal-input"
+              type="text"
+              placeholder="検索したい語を入力…"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleRunSearch()}
+              autoFocus
+            />
+            <div className="modal-actions">
+              <button className="modal-cancel" onClick={() => setShowSearchModal(false)}>
+                キャンセル
+              </button>
+              <button className="modal-submit" onClick={handleRunSearch}>
+                検索
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showProfileModal && (
         <div className="modal-overlay" onClick={() => setShowProfileModal(false)}>
           <div className="modal-panel" onClick={(e) => e.stopPropagation()}>
@@ -254,16 +311,34 @@ export default function App() {
 }
 
 type AuthScreenProps = {
-  onLogin: (name: string, password: string) => Promise<void>;
-  onRegister: (name: string, password: string) => Promise<void>;
+  onLogin: (name: string, password: string, workspaceCode: string) => Promise<void>;
+  onRegister: (name: string, password: string, workspaceCode: string) => Promise<void>;
 };
 
 function AuthScreen({ onLogin, onRegister }: AuthScreenProps) {
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
+  const [workspaceCode, setWorkspaceCode] = useState("");
   const [mode, setMode] = useState<"login" | "register">("login");
+  const [registerStep, setRegisterStep] = useState<"choose" | "create" | "join">("choose");
+  const [newWorkspaceName, setNewWorkspaceName] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  async function handleCreateWorkspace(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSubmitting(true);
+    setError("");
+    try {
+      const ws = await createWorkspace(newWorkspaceName);
+      setWorkspaceCode(ws.code);
+      setRegisterStep("join"); // 作成後、そのままユーザー登録フォームへ
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "ワークスペースの作成に失敗しました");
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -271,9 +346,9 @@ function AuthScreen({ onLogin, onRegister }: AuthScreenProps) {
     setError("");
     try {
       if (mode === "login") {
-        await onLogin(name, password);
+        await onLogin(name, password, workspaceCode);
       } else {
-        await onRegister(name, password);
+        await onRegister(name, password, workspaceCode);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "認証に失敗しました");
@@ -284,31 +359,70 @@ function AuthScreen({ onLogin, onRegister }: AuthScreenProps) {
 
   return (
     <main className="auth-page">
-      <form className="auth-panel" onSubmit={handleSubmit}>
+      <form className="auth-panel" onSubmit={mode === "register" && registerStep === "create" ? handleCreateWorkspace : handleSubmit}>
         <div className="auth-brand">
           <i className="ti ti-messages" />
           <span>TaskChat</span>
         </div>
         <div className="auth-tabs">
-          <button className={mode === "login" ? "active" : ""} type="button" onClick={() => setMode("login")}>
+          <button className={mode === "login" ? "active" : ""} type="button" onClick={() => { setMode("login"); setError(""); }}>
             ログイン
           </button>
-          <button className={mode === "register" ? "active" : ""} type="button" onClick={() => setMode("register")}>
+          <button className={mode === "register" ? "active" : ""} type="button" onClick={() => { setMode("register"); setRegisterStep("choose"); setError(""); }}>
             登録
           </button>
         </div>
-        <label className="auth-field">
-          <span>ユーザー名</span>
-          <input autoComplete="username" value={name} onChange={(e) => setName(e.target.value)} required />
-        </label>
-        <label className="auth-field">
-          <span>パスワード</span>
-          <input autoComplete={mode === "login" ? "current-password" : "new-password"} type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-        </label>
-        {error && <p className="auth-error">{error}</p>}
-        <button className="auth-submit" disabled={submitting} type="submit">
-          {submitting ? "送信中..." : mode === "login" ? "ログイン" : "登録して開始"}
-        </button>
+
+        {mode === "register" && registerStep === "choose" && (
+          <>
+            <p className="modal-sub">新しくワークスペースを作りますか？それとも招待コードで参加しますか？</p>
+            <button type="button" className="auth-submit" onClick={() => setRegisterStep("create")}>
+              新しいワークスペースを作る
+            </button>
+            <button type="button" className="modal-cancel" onClick={() => setRegisterStep("join")}>
+              招待コードで参加する
+            </button>
+          </>
+        )}
+
+        {mode === "register" && registerStep === "create" && (
+          <>
+            <label className="auth-field">
+              <span>ワークスペース名</span>
+              <input value={newWorkspaceName} onChange={(e) => setNewWorkspaceName(e.target.value)} required placeholder="例：〇〇プロジェクト" />
+            </label>
+            {error && <p className="auth-error">{error}</p>}
+            <button className="auth-submit" disabled={submitting} type="submit">
+              {submitting ? "作成中…" : "作成する"}
+            </button>
+          </>
+        )}
+
+        {((mode === "register" && registerStep === "join") || mode === "login") && (
+          <>
+            {mode === "register" && workspaceCode && (
+              <p className="modal-sub">
+                招待コード: <strong>{workspaceCode}</strong>（メンバーに共有してください）
+              </p>
+            )}
+            <label className="auth-field">
+              <span>招待コード</span>
+              <input value={workspaceCode} onChange={(e) => setWorkspaceCode(e.target.value.toUpperCase())} required placeholder="例：A1B2C3D4" />
+            </label>
+            <label className="auth-field">
+              <span>ユーザー名</span>
+              <input autoComplete="username" value={name} onChange={(e) => setName(e.target.value)} required />
+            </label>
+            <label className="auth-field">
+              <span>パスワード</span>
+              <input autoComplete={mode === "login" ? "current-password" : "new-password"} type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            </label>
+            {error && <p className="auth-error">{error}</p>}
+            <button className="auth-submit" disabled={submitting} type="submit">
+              {submitting ? "送信中..." : mode === "login" ? "ログイン" : "登録して開始"}
+            </button>
+          </>
+        )}
       </form>
     </main>
   );

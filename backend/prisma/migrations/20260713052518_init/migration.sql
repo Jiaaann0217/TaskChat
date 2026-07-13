@@ -3,6 +3,7 @@ CREATE TABLE "User" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "password" TEXT NOT NULL,
+    "avatarColor" TEXT NOT NULL DEFAULT '#1C7293',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
@@ -47,8 +48,20 @@ CREATE TABLE "Task" (
     "done" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "assignedToId" INTEGER,
+    "roomId" INTEGER,
 
     CONSTRAINT "Task_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ContributionLog" (
+    "id" SERIAL NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "roomId" INTEGER NOT NULL,
+    "done" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "ContributionLog_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -56,6 +69,9 @@ CREATE UNIQUE INDEX "User_name_key" ON "User"("name");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Pin_messageId_key" ON "Pin"("messageId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ContributionLog_userId_roomId_key" ON "ContributionLog"("userId", "roomId");
 
 -- AddForeignKey
 ALTER TABLE "Message" ADD CONSTRAINT "Message_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -71,3 +87,9 @@ ALTER TABLE "Pin" ADD CONSTRAINT "Pin_roomId_fkey" FOREIGN KEY ("roomId") REFERE
 
 -- AddForeignKey
 ALTER TABLE "Task" ADD CONSTRAINT "Task_assignedToId_fkey" FOREIGN KEY ("assignedToId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Task" ADD CONSTRAINT "Task_roomId_fkey" FOREIGN KEY ("roomId") REFERENCES "Room"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ContributionLog" ADD CONSTRAINT "ContributionLog_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -6,9 +6,10 @@ type Props = {
   roomId: number | null;
   onClose: () => void;
   refreshTrigger: number;
+  onJumpToMessage: (messageId: number) => void;
 };
 
-export default function PinPanel({ roomId, onClose, refreshTrigger }: Props) {
+export default function PinPanel({ roomId, onClose, refreshTrigger, onJumpToMessage }: Props) {
   const [pins, setPins] = useState<Pin[]>([]);
   const [contributions, setContributions] = useState<Contribution[]>([]);
 
@@ -31,7 +32,11 @@ export default function PinPanel({ roomId, onClose, refreshTrigger }: Props) {
           <p className="pp-empty">ピン止めがありません</p>
         ) : (
           pins.map((pin) => (
-            <div key={pin.id} className="pin-card">
+            <div
+              key={pin.id}
+              className="pin-card pin-card--clickable"
+              onClick={() => onJumpToMessage(pin.message_id)}
+            >
               <div className="pin-card-tag">
                 <i className="ti ti-pin" />重要
               </div>

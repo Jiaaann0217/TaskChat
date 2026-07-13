@@ -5,15 +5,15 @@ type Props = {
   avatarColor: string;
   onLogout: () => void;
   onOpenProfile: () => void;
+  onOpenSearch: () => void;
 };
 
-export default function Topbar({ userName, avatarColor, onLogout, onOpenProfile }: Props) {
+export default function Topbar({ userName, avatarColor, onLogout, onOpenProfile, onOpenSearch }: Props) {
   return (
     <header className="topbar">
       ...
       <div className="topbar-actions">
-        <i className="ti ti-search" title="検索" />
-        <i className="ti ti-bell" title="通知" />
+        <i className="ti ti-search" title="検索" onClick={onOpenSearch} />
         <i className="ti ti-settings" title="設定" onClick={onOpenProfile} />
       </div>
 
