@@ -44,12 +44,13 @@ router.get("/", auth, async (req, res) => {
 
 // メッセージ送信
 router.post("/", auth, async (req, res) => {
-    const { roomId, body } = req.body;
+    const { roomId, body, isRecruiting = false } = req.body;
     const msg = await prisma.message.create({
         data: {
             body,
             userId: req.user.id,
             roomId: Number(roomId),
+            isRecruiting: Boolean(isRecruiting),
         },
         include: { user: { select: { name: true } } },
     });

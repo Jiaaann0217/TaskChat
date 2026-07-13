@@ -4,6 +4,8 @@ import EmptyChat from "./EmptyChat";
 import YarimasuButton from "./YarimasuButton";
 import "./ChatMain.css";
 
+type LocalMessage = Message;
+
 type Props = {
   roomId: number | null;
   onStartChat: () => void;
@@ -13,10 +15,8 @@ type Props = {
   onPinChange: () => void;
 };
 
-type LocalMessage = Message & { is_recruiting?: boolean };
-
 export default function ChatMain({ roomId, onStartChat, onYarimasu, pinPanelOpen, onTogglePin, onPinChange }: Props) {
-  const [messages, setMessages] = useState<LocalMessage[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState<string>("");
   const [recruiting, setRecruiting] = useState(false);
   const [doneIds, setDoneIds] = useState<number[]>([]);
@@ -31,7 +31,6 @@ export default function ChatMain({ roomId, onStartChat, onYarimasu, pinPanelOpen
 
     fetchMessages(roomId).then(setMessages);
     fetchPins(roomId).then((pins) => setPinnedIds(pins.map((p) => p.message_id)));
-    setRecruiting(false);
 
     // WebSocket接続
     const wsBase = (import.meta.env.VITE_API_URL ?? window.location.origin).replace(/^http/, "ws");
@@ -64,12 +63,12 @@ export default function ChatMain({ roomId, onStartChat, onYarimasu, pinPanelOpen
     if (!text || !roomId) return;
 
     // DBに保存して保存済みメッセージを取得
-    const saved = await sendMessage(roomId, text) as LocalMessage | undefined;
+    const saved = await sendMessage(roomId, text, recruiting) as LocalMessage | undefined;
     setInput("");
 
     if (saved) {
       // 自分の画面に即追加
-      const withFlag: LocalMessage = recruiting ? { ...saved, is_recruiting: true } : saved;
+      const withFlag: LocalMessage = recruiting ? { ...saved, needs_response: true } : saved;
       setMessages((prev) => [...prev, withFlag]);
 
       // WSで全員に送信（自分のIDを記録して重複受信を防ぐ）
@@ -82,7 +81,7 @@ export default function ChatMain({ roomId, onStartChat, onYarimasu, pinPanelOpen
       fetchMessages(roomId).then((fetched: Message[]) => {
         const withFlag: LocalMessage[] = fetched.map((m, i) => {
           if (i === fetched.length - 1 && recruiting) {
-            return { ...m, is_recruiting: true };
+            return { ...m, needs_response: true };
           }
           return m;
         });
@@ -150,7 +149,7 @@ export default function ChatMain({ roomId, onStartChat, onYarimasu, pinPanelOpen
           </div>
         ) : (
           messages.map((msg) => (
-            <div key={msg.id} className={`msg ${msg.is_recruiting ? "msg--recruiting" : ""}`}>
+            <div key={msg.id} className={`msg ${msg.needs_response ? "msg--recruiting" : ""}`}>
               <div
                 className="msg-av"
                 style={{ background: msg.avatar_bg, color: msg.avatar_fg }}
@@ -167,7 +166,7 @@ export default function ChatMain({ roomId, onStartChat, onYarimasu, pinPanelOpen
                     <i className="ti ti-clock" />
                     {msg.time_label}
                   </span>
-                  {msg.is_recruiting && (
+                  {msg.needs_response && (
                     <span className="msg-recruiting-badge">
                       <i className="ti ti-speakerphone" />
                       募集中
@@ -175,7 +174,7 @@ export default function ChatMain({ roomId, onStartChat, onYarimasu, pinPanelOpen
                   )}
                 </div>
                 <div className="msg-bubble-row">
-                  <div className={`msg-bubble ${msg.is_recruiting ? "msg-bubble--recruiting" : ""}`}>
+                  <div className={`msg-bubble ${msg.needs_response ? "msg-bubble--recruiting" : ""}`}>
                     {msg.body}
                   </div>
                   <button
@@ -186,7 +185,7 @@ export default function ChatMain({ roomId, onStartChat, onYarimasu, pinPanelOpen
                     <i className="ti ti-pin" />
                   </button>
                 </div>
-                {msg.is_recruiting && (
+                {msg.needs_response && (
                   <YarimasuButton
                     messageId={msg.id}
                     done={doneIds.includes(msg.id)}

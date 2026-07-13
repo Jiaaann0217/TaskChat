@@ -57,7 +57,7 @@ type BackendTask = {
   roomId: number | null;
 };
 
-type BackendMessage = {
+export type BackendMessage = {
   id: number;
   body: string;
   createdAt: string;
@@ -67,7 +67,7 @@ type BackendMessage = {
   };
 };
 
-type BackendPin = {
+export type BackendPin = {
   id: number;
   messageId: number;
   createdAt: string;
@@ -76,7 +76,7 @@ type BackendPin = {
   };
 };
 
-type BackendContribution = {
+export type BackendContribution = {
   id: number;
   name: string;
   _count?: {
@@ -125,7 +125,7 @@ async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> 
   return res.json();
 }
 
-function formatDateLabel(value: string | null | undefined) {
+export function formatDateLabel(value: string | null | undefined) {
   if (!value) return "";
   return new Intl.DateTimeFormat("ja-JP", {
     month: "numeric",
@@ -147,7 +147,7 @@ function isOverdue(value: string | null | undefined) {
   return Boolean(value && new Date(value).getTime() < Date.now());
 }
 
-function avatarLabel(name: string) {
+export function avatarLabel(name: string) {
   return name.trim().slice(0, 2).toUpperCase() || "??";
 }
 
@@ -189,38 +189,11 @@ export async function sendMessage(roomId: number, body: string, isRecruiting = f
 }
 
 export async function fetchPins(roomId: number): Promise<Pin[]> {
-  const pins = await apiFetch<BackendPin[]>(`/api/pins?roomId=${roomId}`);
-  return pins.map((pin) => ({
-    id: pin.id,
-    message_id: pin.messageId,
-    body: pin.message?.body || "",
-    created_by_name: "Pinned",
-    date_label: formatDateLabel(pin.createdAt),
-  }));
+  return apiFetch<Pin[]>(`/api/pins?roomId=${roomId}`);
 }
 
 export async function fetchContributions(): Promise<Contribution[]> {
-  const contributions = await apiFetch<BackendContribution[]>(
-    "/api/contributions",
-  );
-  const maxCount = Math.max(
-    1,
-    ...contributions.map((contribution) => contribution._count?.tasks || 0),
-  );
-
-  return contributions.map((contribution, index) => {
-    const count = contribution._count?.tasks || 0;
-    return {
-      user_id: contribution.id,
-      name: contribution.name,
-      pct: Math.round((count / maxCount) * 100),
-      count,
-      color: colors[index % colors.length],
-      avatar_bg: "#E1F5EE",
-      avatar_fg: "#04342C",
-      avatar_label: avatarLabel(contribution.name),
-    };
-  });
+  return apiFetch<Contribution[]>("/api/contributions");
 }
 
 export async function createRoom(name = "新しいチャット"): Promise<Room> {
@@ -278,5 +251,3 @@ export async function register(name: string, password: string): Promise<void> {
     body: JSON.stringify({ name, password }),
   });
 }
-
-
