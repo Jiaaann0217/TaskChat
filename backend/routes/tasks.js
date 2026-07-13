@@ -3,7 +3,6 @@ const router = express.Router();
 const prisma = require("../prisma/client");
 const auth = require("../middleware/auth");
 
-// タスク一覧
 router.get("/", auth, async (req, res) => {
     const tasks = await prisma.task.findMany({
         orderBy: { dueDate: "asc" },
@@ -12,7 +11,6 @@ router.get("/", auth, async (req, res) => {
     res.json(tasks);
 });
 
-// タスク作成（「やります」ボタン）
 router.post("/", auth, async (req, res) => {
     const task = await prisma.task.create({
         data: {
@@ -24,19 +22,19 @@ router.post("/", auth, async (req, res) => {
     res.json(task);
 });
 
-// やります（messageIdからタスク化）→ 同時に専用チャットルームも作成
 router.post("/from-message", auth, async (req, res) => {
-    const room = await prisma.room.create({
-        data: { name: `作業: ${req.body.title}` },
-    });
-
-    const task = await prisma.task.create({
-        data: {
-            title: req.body.title,
-            dueDate: req.body.dueDate ? new Date(req.body.dueDate) : null,
-            assignedToId: req.user.id,
-            roomId: room.id,
-        },
+    const { title, dueDate } = req.body;
+    const { room, task } = await prisma.$transaction(async (tx) => {
+        const room = await tx.room.create({ data: { name: `Task: ${title}` } });
+        const task = await tx.task.create({
+            data: {
+                title,
+                dueDate: dueDate ? new Date(dueDate) : null,
+                assignedToId: req.user.id,
+                roomId: room.id,
+            },
+        });
+        return { room, task };
     });
 
     res.json({ success: true, task, room });
@@ -74,28 +72,25 @@ router.patch("/:id/done", auth, async (req, res) => {
     res.json(task);
 });
 
-// タスク削除（紐づく作業チャットも削除）
 router.delete("/:id", auth, async (req, res) => {
     const taskId = Number(req.params.id);
     try {
         const task = await prisma.task.findUnique({ where: { id: taskId } });
-        if (!task) return res.status(404).json({ error: "タスクが見つかりません" });
+        if (!task) return res.status(404).json({ error: "Task not found" });
 
-        if (task.roomId) {
-            await prisma.pin.deleteMany({ where: { roomId: task.roomId } });
-            await prisma.message.deleteMany({ where: { roomId: task.roomId } });
-        }
-
-        await prisma.task.delete({ where: { id: taskId } });
-
-        if (task.roomId) {
-            await prisma.room.delete({ where: { id: task.roomId } });
-        }
+        await prisma.$transaction(async (tx) => {
+            if (task.roomId) {
+                await tx.pin.deleteMany({ where: { roomId: task.roomId } });
+                await tx.message.deleteMany({ where: { roomId: task.roomId } });
+            }
+            await tx.task.delete({ where: { id: taskId } });
+            if (task.roomId) await tx.room.delete({ where: { id: task.roomId } });
+        });
 
         res.status(204).send();
-    } catch (e) {
-        console.error(e);
-        res.status(500).json({ error: "削除に失敗しました" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Failed to delete task" });
     }
 });
 

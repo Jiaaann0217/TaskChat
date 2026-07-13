@@ -57,7 +57,7 @@ type BackendTask = {
   roomId: number | null;
 };
 
-type BackendMessage = {
+export type BackendMessage = {
   id: number;
   body: string;
   createdAt: string;
@@ -67,7 +67,7 @@ type BackendMessage = {
   };
 };
 
-type BackendPin = {
+export type BackendPin = {
   id: number;
   messageId: number;
   createdAt: string;
@@ -76,7 +76,7 @@ type BackendPin = {
   };
 };
 
-type BackendContribution = {
+export type BackendContribution = {
   id: number;
   name: string;
   _count?: {
@@ -126,7 +126,7 @@ async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> 
   return res.json();
 }
 
-function formatDateLabel(value: string | null | undefined) {
+export function formatDateLabel(value: string | null | undefined) {
   if (!value) return "";
   return new Intl.DateTimeFormat("ja-JP", {
     month: "numeric",
@@ -205,14 +205,7 @@ export async function sendMessage(roomId: number, body: string, isRecruiting = f
 }
 
 export async function fetchPins(roomId: number): Promise<Pin[]> {
-  const pins = await apiFetch<BackendPin[]>(`/api/pins?roomId=${roomId}`);
-  return pins.map((pin) => ({
-    id: pin.id,
-    message_id: pin.messageId,
-    body: pin.message?.body || "",
-    created_by_name: "Pinned",
-    date_label: formatDateLabel(pin.createdAt),
-  }));
+  return apiFetch<Pin[]>(`/api/pins?roomId=${roomId}`);
 }
 
 export async function fetchContributions(): Promise<Contribution[]> {
@@ -311,5 +304,3 @@ export async function register(name: string, password: string): Promise<void> {
     body: JSON.stringify({ name, password }),
   });
 }
-
-
