@@ -97,6 +97,7 @@ export function isAuthenticated() {
 
 export function logout() {
   localStorage.removeItem("token");
+  localStorage.removeItem("avatar_color");
 }
 
 async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -147,7 +148,22 @@ function isOverdue(value: string | null | undefined) {
   return Boolean(value && new Date(value).getTime() < Date.now());
 }
 
-export function avatarLabel(name: string) {
+function isDueSoon(value: string | null | undefined) {
+  if (!value) return false;
+  const due = new Date(value).getTime();
+  const now = Date.now();
+  const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
+  return due >= now && due - now <= threeDaysMs;
+}
+
+function taskColor(dueDate: string | null | undefined, done: boolean) {
+  if (done) return "#9A9A94";
+  if (isOverdue(dueDate)) return "#E24B4A";   // 赤（期限切れ）
+  if (isDueSoon(dueDate)) return "#D97706";   // 黄（期限3日前）
+  return "#378ADD";                            // 青（それ以外）
+}
+
+function avatarLabel(name: string) {
   return name.trim().slice(0, 2).toUpperCase() || "??";
 }
 
@@ -163,11 +179,11 @@ export async function fetchRooms(): Promise<Room[]> {
 
 export async function fetchTasks(): Promise<Task[]> {
   const tasks = await apiFetch<BackendTask[]>("/api/tasks");
-  return tasks.map((task, index) => ({
+  return tasks.map((task) => ({
     id: task.id,
     title: task.title,
     due_label: formatDueLabel(task.dueDate),
-    color: task.done ? "#9A9A94" : colors[index % colors.length],
+    color: taskColor(task.dueDate, task.done),
     overdue: !task.done && isOverdue(task.dueDate),
     roomId: task.roomId,
   }));
@@ -214,15 +230,32 @@ export async function deleteRoom(roomId: number): Promise<void> {
   await apiFetch(`/api/rooms/${roomId}`, { method: "DELETE" });
 }
 
-export async function createTask(title: string): Promise<{ id: number; roomId: number | null }> {
+export async function createTask(
+  title: string,
+  dueDate: string | null = null
+): Promise<{ id: number; roomId: number | null }> {
   const result = await apiFetch<{ success: boolean; task: { id: number; roomId: number | null } }>(
     "/api/tasks/from-message",
     {
       method: "POST",
-      body: JSON.stringify({ title }),
+      body: JSON.stringify({ title, dueDate }),
     }
   );
   return result.task;
+}
+
+export type RoomTask = {
+  id: number;
+  done: boolean;
+  roomId: number | null;
+};
+
+export async function fetchTaskByRoom(roomId: number): Promise<RoomTask | null> {
+  return apiFetch<RoomTask | null>(`/api/tasks/by-room/${roomId}`);
+}
+
+export async function completeTask(taskId: number): Promise<void> {
+  await apiFetch(`/api/tasks/${taskId}/done`, { method: "PATCH" });
 }
 
 export async function createPin(roomId: number, messageId: number): Promise<void> {
@@ -236,13 +269,33 @@ export async function deleteTask(taskId: number): Promise<void> {
   await apiFetch(`/api/tasks/${taskId}`, { method: "DELETE" });
 }
 
-export async function login(name: string, password: string): Promise<string> {
-  const result = await apiFetch<{ token: string }>("/api/auth/login", {
-    method: "POST",
-    body: JSON.stringify({ name, password }),
-  });
+export async function login(name: string, password: string): Promise<{ name: string; avatarColor: string }> {
+  const result = await apiFetch<{ token: string; name: string; avatarColor: string }>(
+    "/api/auth/login",
+    {
+      method: "POST",
+      body: JSON.stringify({ name, password }),
+    }
+  );
   localStorage.setItem("token", result.token);
-  return result.token;
+  localStorage.setItem("avatar_color", result.avatarColor);
+  return { name: result.name, avatarColor: result.avatarColor };
+}
+
+export async function updateProfile(
+  name: string | null,
+  avatarColor: string | null
+): Promise<{ name: string; avatarColor: string }> {
+  const result = await apiFetch<{ token: string; name: string; avatarColor: string }>(
+    "/api/auth/me",
+    {
+      method: "PATCH",
+      body: JSON.stringify({ name, avatarColor }),
+    }
+  );
+  localStorage.setItem("token", result.token);
+  localStorage.setItem("avatar_color", result.avatarColor);
+  return { name: result.name, avatarColor: result.avatarColor };
 }
 
 export async function register(name: string, password: string): Promise<void> {

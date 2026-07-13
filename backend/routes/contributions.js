@@ -14,28 +14,37 @@ const AVATAR_COLORS = [
 
 router.get("/", auth, async (req, res) => {
     const users = await prisma.user.findMany({
-        select: {
-            id: true,
-            name: true,
-            _count: {
-                select: { tasks: { where: { done: true } } },
-            },
-        },
+        select: { id: true, name: true },
     });
 
-    // 最大値を基準にパーセントを計算
-    const max = Math.max(...users.map((u) => u._count.tasks), 1);
+    const totals = await prisma.contributionLog.groupBy({
+        by: ["userId"],
+        _count: { _all: true },
+    });
+    const completed = await prisma.contributionLog.groupBy({
+        by: ["userId"],
+        where: { done: true },
+        _count: { _all: true },
+    });
 
-    const contributions = users.map((u, i) => ({
-        user_id: u.id,
-        name: u.name,
-        count: u._count.tasks,
-        pct: Math.round((u._count.tasks / max) * 100),
-        color: COLORS[i % COLORS.length],
-        avatar_label: u.name.slice(0, 2),
-        avatar_bg: AVATAR_COLORS[i % AVATAR_COLORS.length].bg,
-        avatar_fg: AVATAR_COLORS[i % AVATAR_COLORS.length].fg,
-    }));
+    const totalMap = Object.fromEntries(totals.map((t) => [t.userId, t._count._all]));
+    const completedMap = Object.fromEntries(completed.map((c) => [c.userId, c._count._all]));
+
+    const contributions = users.map((u, i) => {
+        const total = totalMap[u.id] || 0;
+        const done = completedMap[u.id] || 0;
+        const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+        return {
+            user_id: u.id,
+            name: u.name,
+            count: done,
+            pct,
+            color: COLORS[i % COLORS.length],
+            avatar_label: u.name.slice(0, 2),
+            avatar_bg: AVATAR_COLORS[i % AVATAR_COLORS.length].bg,
+            avatar_fg: AVATAR_COLORS[i % AVATAR_COLORS.length].fg,
+        };
+    });
 
     res.json(contributions);
 });

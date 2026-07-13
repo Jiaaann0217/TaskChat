@@ -12,9 +12,11 @@ model User {
   id        Int       @id @default(autoincrement())
   name      String    @unique
   password  String
+  avatarColor String            @default("#1C7293")
   createdAt DateTime  @default(now())
   messages  Message[]
   tasks     Task[]
+  logs      ContributionLog[]
 }
 
 model Room {
@@ -57,4 +59,15 @@ model Task {
   assignedToId Int?
   room         Room?     @relation(fields: [roomId], references: [id])  // ← 追加
   roomId       Int?
+}
+
+model ContributionLog {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  roomId    Int      // Roomへのリレーションは張らない（Room削除の影響を受けないようにするため）
+  done      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, roomId])
 }

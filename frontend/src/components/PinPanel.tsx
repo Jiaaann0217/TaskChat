@@ -57,7 +57,6 @@ export default function PinPanel({ roomId, onClose, refreshTrigger }: Props) {
               >
                 {c.avatar_label}
               </div>
-              <span className="contrib-name">{c.name}</span>
               <div className="c-track">
                 <div className="c-fill" style={{ width: `${c.pct}%`, background: c.color }} />
               </div>
