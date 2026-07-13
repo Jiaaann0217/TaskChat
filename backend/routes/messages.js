@@ -34,7 +34,7 @@ router.get("/", auth, async (req, res) => {
 
 // メッセージ送信
 router.post("/", auth, async (req, res) => {
-    const { roomId, body } = req.body;
+    const { roomId, body ,isRecruiting} = req.body;
     const roomIdNum = Number(roomId);
 
     const msg = await prisma.message.create({
@@ -42,6 +42,7 @@ router.post("/", auth, async (req, res) => {
             body,
             userId: req.user.id,
             roomId: roomIdNum,
+            isRecruiting: Boolean(isRecruiting), // 今後フラグを追加予定
         },
         include: { user: { select: { name: true, avatarColor: true } } },
     });
@@ -56,7 +57,7 @@ router.post("/", auth, async (req, res) => {
                 roomId: roomIdNum,
                 done: task.done,
             },
-        });
+        }); 
     }
 
     res.json(formatMessage(msg));
