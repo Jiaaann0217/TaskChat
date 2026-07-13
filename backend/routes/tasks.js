@@ -26,7 +26,12 @@ router.post("/", auth, async (req, res) => {
 router.post("/from-message", auth, async (req, res) => {
     const { title, dueDate } = req.body;
     const { room, task } = await prisma.$transaction(async (tx) => {
-        const room = await tx.room.create({ data: { name: `Task: ${title}` } });
+        const room = await tx.room.create({
+            data: {
+                name: `Task: ${title}`,
+                workspace: { connect: { id: req.user.workspaceId } }, // ← 追加
+            },
+        });
         const task = await tx.task.create({
             data: {
                 title,

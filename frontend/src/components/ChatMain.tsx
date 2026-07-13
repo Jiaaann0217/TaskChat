@@ -7,7 +7,7 @@ import "./ChatMain.css";
 type Props = {
   roomId: number | null;
   onStartChat: () => void;
-  onYarimasu: () => void;
+  onRecruitPosted: (title: string) => void;
   pinPanelOpen: boolean;
   onTogglePin: () => void;
   onPinChange: () => void;
@@ -20,7 +20,7 @@ type Props = {
 
 type LocalMessage = Message & { is_recruiting?: boolean };
 
-export default function ChatMain({ roomId, onStartChat, onYarimasu, pinPanelOpen, onTogglePin, onPinChange, onTaskComplete, searchQuery, searchToken, jumpMessageId, jumpToken }: Props) {
+export default function ChatMain({ roomId, onStartChat, onRecruitPosted, pinPanelOpen, onTogglePin, onPinChange, onTaskComplete, searchQuery, searchToken, jumpMessageId, jumpToken }: Props) {
   const [messages, setMessages] = useState<LocalMessage[]>([]);
   const [input, setInput] = useState<string>("");
   const [recruiting, setRecruiting] = useState(false);
@@ -100,9 +100,12 @@ export default function ChatMain({ roomId, onStartChat, onYarimasu, pinPanelOpen
     const text = input.trim();
     if (!text || !roomId) return;
 
+    const wasRecruiting = recruiting; // 送信前に状態を保持
+
     // DBに保存して保存済みメッセージを取得
     const saved = await sendMessage(roomId, text, recruiting) as LocalMessage | undefined;
     setInput("");
+    setRecruiting(false); // 送信後は募集トグルをリセット
 
     if (saved) {
       // 自分の画面に即追加
@@ -126,18 +129,24 @@ export default function ChatMain({ roomId, onStartChat, onYarimasu, pinPanelOpen
         setMessages(withFlag);
       });
     }
+    // 募集チャットを投稿したときだけ作業チャットの設定モーダルを開く
+    if (wasRecruiting) {
+      onRecruitPosted(text);
+    }
   }
+
+  // 「やります」ボタン → 参加登録のみ（モーダルは開かない）
+  function handleJoinTask(messageId: number) {
+    setDoneIds((prev) => (prev.includes(messageId) ? prev : [...prev, messageId]));
+    // 必要であればここで参加を記録するAPI呼び出しを追加（例: POST /api/tasks/:id/join）
+  }
+
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
-  }
-
-  function handleYarimasu(messageId: number) {
-    setDoneIds((prev) => [...prev, messageId]);
-    onYarimasu(); // App.tsx のモーダルを開く
   }
 
   async function handlePin(messageId: number) {
@@ -255,7 +264,7 @@ export default function ChatMain({ roomId, onStartChat, onYarimasu, pinPanelOpen
                   <YarimasuButton
                     messageId={msg.id}
                     done={doneIds.includes(msg.id)}
-                    onYarimasu={handleYarimasu}
+                    onYarimasu={handleJoinTask}
                   />
                 )}
               </div>

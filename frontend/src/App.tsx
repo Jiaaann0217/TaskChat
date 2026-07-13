@@ -57,6 +57,14 @@ export default function App() {
     setShowModal(true);
   }
 
+  // 募集チャット投稿時 → タスク追加モーダル（メッセージ本文を初期値にセット）
+  function handleRecruitPosted(title: string) {
+    setModalMode("task");
+    setModalInput(title);
+    setModalDueDate("");
+    setShowModal(true);
+  }
+
   // モーダル確定
   async function handleModalSubmit() {
     setSubmitting(true);
@@ -175,7 +183,7 @@ export default function App() {
       <ChatMain
         roomId={activeRoomId}
         onStartChat={handleStartChat}
-        onYarimasu={handleYarimasu}
+        onRecruitPosted={handleRecruitPosted}
         pinPanelOpen={pinPanelOpen}
         onTogglePin={() => setPinPanelOpen((o) => !o)}
         onPinChange={() => setPinRefreshTrigger((v) => v + 1)}
@@ -198,7 +206,7 @@ export default function App() {
             </div>
             <p className="modal-sub">
               {isTask
-                ? "引き受ける作業の名前を入力してください"
+                ? "募集した作業のタイトルと期限を設定してください"
                 : "チャットルームの名前を入力してください"}
             </p>
             <input
