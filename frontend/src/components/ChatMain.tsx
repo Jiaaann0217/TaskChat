@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { fetchMessages, sendMessage, fetchPins, createPin, fetchTaskByRoom, completeTask, type Message, type RoomTask } from "../api";
+import { fetchMessages, sendMessage, fetchPins, createPin, fetchTaskByRoom, completeTask, joinTaskByMessage, type Message, type RoomTask } from "../api";
 import EmptyChat from "./EmptyChat";
 import YarimasuButton from "./YarimasuButton";
 import "./ChatMain.css";
@@ -7,7 +7,8 @@ import "./ChatMain.css";
 type Props = {
   roomId: number | null;
   onStartChat: () => void;
-  onRecruitPosted: (title: string) => void;
+  onRecruitPosted: (title: string, messageId: number) => void;
+  onRoomJoined: () => void;
   pinPanelOpen: boolean;
   onTogglePin: () => void;
   onPinChange: () => void;
@@ -20,7 +21,7 @@ type Props = {
 
 type LocalMessage = Message & { is_recruiting?: boolean };
 
-export default function ChatMain({ roomId, onStartChat, onRecruitPosted, pinPanelOpen, onTogglePin, onPinChange, onTaskComplete, searchQuery, searchToken, jumpMessageId, jumpToken }: Props) {
+export default function ChatMain({ roomId, onStartChat, onRecruitPosted, onRoomJoined, pinPanelOpen, onTogglePin, onPinChange, onTaskComplete, searchQuery, searchToken, jumpMessageId, jumpToken }: Props) {
   const [messages, setMessages] = useState<LocalMessage[]>([]);
   const [input, setInput] = useState<string>("");
   const [recruiting, setRecruiting] = useState(false);
@@ -130,15 +131,21 @@ export default function ChatMain({ roomId, onStartChat, onRecruitPosted, pinPane
       });
     }
     // 募集チャットを投稿したときだけ作業チャットの設定モーダルを開く
-    if (wasRecruiting) {
-      onRecruitPosted(text);
+    if (wasRecruiting && saved) {
+      onRecruitPosted(text, saved.id);
     }
   }
 
-  // 「やります」ボタン → 参加登録のみ（モーダルは開かない）
-  function handleJoinTask(messageId: number) {
-    setDoneIds((prev) => (prev.includes(messageId) ? prev : [...prev, messageId]));
-    // 必要であればここで参加を記録するAPI呼び出しを追加（例: POST /api/tasks/:id/join）
+  // 「やります」ボタン → 実際に参加登録APIを呼ぶ
+  async function handleJoinTask(messageId: number) {
+    if (doneIds.includes(messageId)) return;
+    try {
+      await joinTaskByMessage(messageId);
+      setDoneIds((prev) => [...prev, messageId]);
+      onRoomJoined(); // 参加した作業チャットがサイドバーに表示されるように更新
+    } catch {
+      // 対応する作業が見つからない等のエラーは無視（必要であればトースト表示可）
+    }
   }
 
 

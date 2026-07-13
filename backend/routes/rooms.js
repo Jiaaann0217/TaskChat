@@ -8,7 +8,22 @@ router.get("/", auth, async (req, res) => {
     const rooms = await prisma.room.findMany({
         where: { workspaceId: req.user.workspaceId },
         orderBy: { createdAt: "asc" },
+        include: { tasks: { select: { id: true, assignedToId: true } } },
     });
+
+    const myParticipations = await prisma.taskParticipant.findMany({
+        where: { userId: req.user.id },
+        select: { taskId: true },
+    });
+    const joinedTaskIds = new Set(myParticipations.map((p) => p.taskId));
+
+    const visibleRooms = rooms
+        .filter((room) => {
+            const task = room.tasks[0];
+            if (!task) return true; // 通常のチャットは全員閲覧可
+            return task.assignedToId === req.user.id || joinedTaskIds.has(task.id);
+        })
+        .map(({ id, name }) => ({ id, name }));
     res.json(rooms);
 });
 

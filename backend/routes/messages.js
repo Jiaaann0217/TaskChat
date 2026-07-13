@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const prisma = require("../prisma/client");
 const auth = require("../middleware/auth");
+const ensureRoomAccess = require("../middleware/roomAccess");
 
 function formatMessage(msg) {
     const date = new Date(msg.createdAt);
@@ -23,7 +24,7 @@ function formatMessage(msg) {
 }
 
 // メッセージ一覧
-router.get("/", auth, async (req, res) => {
+router.get("/", auth, ensureRoomAccess, async (req, res) => {
     const msgs = await prisma.message.findMany({
         where: { roomId: Number(req.query.roomId) },
         orderBy: { createdAt: "asc" },
@@ -33,7 +34,7 @@ router.get("/", auth, async (req, res) => {
 });
 
 // メッセージ送信
-router.post("/", auth, async (req, res) => {
+router.post("/", auth, ensureRoomAccess, async (req, res) => {
     const { roomId, body ,isRecruiting} = req.body;
     const roomIdNum = Number(roomId);
 

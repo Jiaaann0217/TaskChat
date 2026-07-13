@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const prisma = require("../prisma/client");
 const auth = require("../middleware/auth");
+const ensureRoomAccess = require("../middleware/roomAccess");
 
 router.get("/", auth, async (req, res) => {
     const tasks = await prisma.task.findMany({
@@ -24,12 +25,12 @@ router.post("/", auth, async (req, res) => {
 });
 
 router.post("/from-message", auth, async (req, res) => {
-    const { title, dueDate } = req.body;
+    const { title, dueDate, messageId } = req.body;
     const { room, task } = await prisma.$transaction(async (tx) => {
         const room = await tx.room.create({
             data: {
                 name: `Task: ${title}`,
-                workspace: { connect: { id: req.user.workspaceId } }, // ← 追加
+                workspace: { connect: { id: req.user.workspaceId } },
             },
         });
         const task = await tx.task.create({
@@ -38,7 +39,12 @@ router.post("/from-message", auth, async (req, res) => {
                 dueDate: dueDate ? new Date(dueDate) : null,
                 assignedToId: req.user.id,
                 roomId: room.id,
+                sourceMessageId: messageId ? Number(messageId) : null,
             },
+        });
+        // 募集者自身は自動的に参加者として登録
+        await tx.taskParticipant.create({
+            data: { taskId: task.id, userId: req.user.id },
         });
         return { room, task };
     });
@@ -46,7 +52,24 @@ router.post("/from-message", auth, async (req, res) => {
     res.json({ success: true, task, room });
 });
 
-// タスク完了（完了ボタン）→ 参加者の記録をdone:trueに更新
+// 「やります」ボタン → 元メッセージから該当タスクを特定して参加登録
+router.post("/join-by-message/:messageId", auth, async (req, res) => {
+    const messageId = Number(req.params.messageId);
+    const task = await prisma.task.findUnique({ where: { sourceMessageId: messageId } });
+    if (!task) return res.status(404).json({ error: "対応する作業が見つかりません" });
+
+    try {
+        await prisma.taskParticipant.upsert({
+            where: { taskId_userId: { taskId: task.id, userId: req.user.id } },
+            update: {},
+            create: { taskId: task.id, userId: req.user.id },
+        });
+        res.json({ success: true, roomId: task.roomId });
+    } catch (e) {
+        res.status(500).json({ error: "参加に失敗しました" });
+    }
+});
+
 router.patch("/:id/done", auth, async (req, res) => {
     const task = await prisma.task.update({
         where: { id: Number(req.params.id) },
@@ -65,11 +88,7 @@ router.patch("/:id/done", auth, async (req, res) => {
                 prisma.contributionLog.upsert({
                     where: { userId_roomId: { userId: p.userId, roomId: task.roomId } },
                     update: { done: true },
-                    create: {
-                        userId: p.userId,
-                        roomId: task.roomId,
-                        done: true,
-                    },
+                    create: { userId: p.userId, roomId: task.roomId, done: true },
                 })
             )
         );
@@ -86,6 +105,7 @@ router.delete("/:id", auth, async (req, res) => {
 
         await prisma.$transaction(async (tx) => {
             if (task.roomId) {
+                await tx.taskParticipant.deleteMany({ where: { taskId } });
                 await tx.pin.deleteMany({ where: { roomId: task.roomId } });
                 await tx.message.deleteMany({ where: { roomId: task.roomId } });
             }
@@ -100,8 +120,7 @@ router.delete("/:id", auth, async (req, res) => {
     }
 });
 
-// ルームIDから紐づくタスクを取得（作業チャット用）
-router.get("/by-room/:roomId", auth, async (req, res) => {
+router.get("/by-room/:roomId", auth, ensureRoomAccess, async (req, res) => {
     const roomId = Number(req.params.roomId);
     const task = await prisma.task.findFirst({ where: { roomId } });
     res.json(task);

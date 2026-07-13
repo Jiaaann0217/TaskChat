@@ -2,8 +2,9 @@ const express = require("express");
 const router = express.Router();
 const prisma = require("../prisma/client");
 const auth = require("../middleware/auth");
+const ensureRoomAccess = require("../middleware/roomAccess");
 
-router.get("/", auth, async (req, res) => {
+router.get("/", auth, ensureRoomAccess, async (req, res) => {
     const pins = await prisma.pin.findMany({
         where: { roomId: Number(req.query.roomId) },
         include: {
@@ -28,7 +29,7 @@ router.get("/", auth, async (req, res) => {
     res.json(formatted);
 });
 
-router.post("/", auth, async (req, res) => {
+router.post("/", auth, ensureRoomAccess, async (req, res) => {
     try {
         const pin = await prisma.pin.create({
             data: {

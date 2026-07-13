@@ -225,16 +225,22 @@ export async function deleteRoom(roomId: number): Promise<void> {
 
 export async function createTask(
   title: string,
-  dueDate: string | null = null
+  dueDate: string | null = null,
+  messageId: number | null = null
 ): Promise<{ id: number; roomId: number | null }> {
   const result = await apiFetch<{ success: boolean; task: { id: number; roomId: number | null } }>(
     "/api/tasks/from-message",
     {
       method: "POST",
-      body: JSON.stringify({ title, dueDate }),
+      body: JSON.stringify({ title, dueDate, messageId }),
     }
   );
   return result.task;
+}
+
+// 「やります」ボタン用
+export async function joinTaskByMessage(messageId: number): Promise<{ roomId: number | null }> {
+  return apiFetch(`/api/tasks/join-by-message/${messageId}`, { method: "POST" });
 }
 
 export type RoomTask = {

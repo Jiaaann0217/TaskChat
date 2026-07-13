@@ -28,6 +28,7 @@ model User {
   messages  Message[]
   tasks     Task[]
   logs      ContributionLog[]
+  taskParticipations TaskParticipant[]
 
   @@unique([workspaceId, name])
 }
@@ -53,6 +54,7 @@ model Message {
   roomId    Int
   pin       Pin?
   isRecruiting Boolean @default(false)
+  task      Task?
 }
 
 model Pin {
@@ -74,6 +76,9 @@ model Task {
   assignedToId Int?
   room         Room?     @relation(fields: [roomId], references: [id])  // ← 追加
   roomId       Int?
+  sourceMessage   Message?  @relation(fields: [sourceMessageId], references: [id])
+  sourceMessageId Int?      @unique   // ← 追加：募集メッセージとの紐付け
+  participants    TaskParticipant[]   // ← 追加
 }
 
 model ContributionLog {
@@ -85,4 +90,15 @@ model ContributionLog {
   createdAt DateTime @default(now())
 
   @@unique([userId, roomId])
+}
+
+model TaskParticipant {
+  id        Int      @id @default(autoincrement())
+  task      Task     @relation(fields: [taskId], references: [id])
+  taskId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  createdAt DateTime @default(now())
+
+  @@unique([taskId, userId])
 }
