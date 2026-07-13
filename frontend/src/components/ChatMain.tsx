@@ -4,8 +4,6 @@ import EmptyChat from "./EmptyChat";
 import YarimasuButton from "./YarimasuButton";
 import "./ChatMain.css";
 
-type LocalMessage = Message;
-
 type Props = {
   roomId: number | null;
   onStartChat: () => void;
