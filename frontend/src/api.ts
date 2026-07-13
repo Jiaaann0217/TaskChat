@@ -57,7 +57,7 @@ type BackendTask = {
   roomId: number | null;
 };
 
-type BackendMessage = {
+export type BackendMessage = {
   id: number;
   body: string;
   createdAt: string;
@@ -119,7 +119,7 @@ async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> 
   return res.json();
 }
 
-function formatDateLabel(value: string | null | undefined) {
+export function formatDateLabel(value: string | null | undefined) {
   if (!value) return "";
   return new Intl.DateTimeFormat("ja-JP", {
     month: "numeric",

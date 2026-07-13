@@ -25,9 +25,12 @@ router.delete("/:id", auth, async (req, res) => {
     const roomId = Number(req.params.id);
     try {
         // リレーションの順番通りに削除（Pin → Message → Room）
-        await prisma.pin.deleteMany({ where: { roomId } });
-        await prisma.message.deleteMany({ where: { roomId } });
-        await prisma.room.delete({ where: { id: roomId } });
+        await prisma.$transaction(async (tx) => {
+            await tx.pin.deleteMany({ where: { roomId } });
+            await tx.message.deleteMany({ where: { roomId } });
+            await tx.task.deleteMany({ where: { roomId } });
+            await tx.room.delete({ where: { id: roomId } });
+        });
         res.status(204).send();
     } catch (e) {
         console.error(e);
