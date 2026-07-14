@@ -49,10 +49,14 @@ router.post("/", auth, ensureRoomAccess, async (req, res) => {
 
 // ピン解除
 router.delete("/:messageId", auth, ensureRoomAccess, async (req, res) => {
+    const messageId = Number(req.params.messageId);
+    const roomId = Number(req.query.roomId);
     try {
-        await prisma.pin.delete({
-            where: { messageId: Number(req.params.messageId) },
-        });
+        const pin = await prisma.pin.findUnique({ where: { messageId } });
+        if (!pin || pin.roomId !== roomId) {
+            return res.status(404).json({ error: "ピアが見つかりません" });
+        }
+        await prisma.pin.delete({ where: { messageId } });
         res.status(204).send();
     } catch (e) {
         if (e.code === "P2025") {
