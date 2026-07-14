@@ -47,4 +47,19 @@ router.post("/", auth, ensureRoomAccess, async (req, res) => {
     }
 });
 
+// ピン解除
+router.delete("/:messageId", auth, ensureRoomAccess, async (req, res) => {
+    try {
+        await prisma.pin.delete({
+            where: { messageId: Number(req.params.messageId) },
+        });
+        res.status(204).send();
+    } catch (e) {
+        if (e.code === "P2025") {
+            return res.status(404).json({ error: "ピンが見つかりません" });
+        }
+        res.status(500).json({ error: e.message });
+    }
+});
+
 module.exports = router;

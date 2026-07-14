@@ -265,6 +265,10 @@ export async function createPin(roomId: number, messageId: number): Promise<void
   });
 }
 
+export async function deletePin(roomId: number, messageId: number): Promise<void> {
+  await apiFetch(`/api/pins/${messageId}?roomId=${roomId}`, { method: "DELETE" });
+}
+
 export async function deleteTask(taskId: number): Promise<void> {
   await apiFetch(`/api/tasks/${taskId}`, { method: "DELETE" });
 }

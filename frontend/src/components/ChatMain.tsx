@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { fetchMessages, sendMessage, fetchPins, createPin, fetchTaskByRoom, completeTask, joinTaskByMessage, type Message, type RoomTask } from "../api";
+import { fetchMessages, sendMessage, fetchPins, createPin, deletePin, fetchTaskByRoom, completeTask, joinTaskByMessage, type Message, type RoomTask } from "../api";
 import EmptyChat from "./EmptyChat";
 import YarimasuButton from "./YarimasuButton";
 import "./ChatMain.css";
@@ -8,7 +8,7 @@ type Props = {
   roomId: number | null;
   onStartChat: () => void;
   onRecruitPosted: (title: string, messageId: number) => void;
-  onRoomJoined: () => void;
+  onRoomJoined: (roomId: number | null) => void;
   pinPanelOpen: boolean;
   onTogglePin: () => void;
   onPinChange: () => void;
@@ -140,9 +140,9 @@ export default function ChatMain({ roomId, onStartChat, onRecruitPosted, onRoomJ
   async function handleJoinTask(messageId: number) {
     if (doneIds.includes(messageId)) return;
     try {
-      await joinTaskByMessage(messageId);
+      const result = await joinTaskByMessage(messageId);
       setDoneIds((prev) => [...prev, messageId]);
-      onRoomJoined(); // 参加した作業チャットがサイドバーに表示されるように更新
+      onRoomJoined(result?.roomId ?? null); // 参加した作業チャットがサイドバーに表示されるように更新
     } catch {
       // 対応する作業が見つからない等のエラーは無視（必要であればトースト表示可）
     }
@@ -157,13 +157,18 @@ export default function ChatMain({ roomId, onStartChat, onRecruitPosted, onRoomJ
   }
 
   async function handlePin(messageId: number) {
-    if (!roomId || pinnedIds.includes(messageId)) return;
+    if (!roomId) return;
     try {
-      await createPin(roomId, messageId);
-      setPinnedIds((prev) => [...prev, messageId]);
-      onPinChange();
+      if (pinnedIds.includes(messageId)) {
+        await deletePin(roomId, messageId);
+        setPinnedIds((prev) => prev.filter((id) => id !== messageId));
+      } else {
+        await createPin(roomId, messageId);
+        setPinnedIds((prev) => [...prev, messageId]);
+      }
+      onPinChange(); // ピン止めノート側を自動的に更新
     } catch {
-      // すでにピン止め済みなどのエラーは無視
+      // エラーは無視
     }
   }
 
