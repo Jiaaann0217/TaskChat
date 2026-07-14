@@ -17,12 +17,13 @@ router.get("/", auth, ensureRoomAccess, async (req, res) => {
 
     const formatted = pins.map((pin) => {
         const date = new Date(pin.createdAt);
+        const jstDate = new Date(date.getTime() + 9 * 60 * 60 * 1000);
         return {
             id: pin.id,
             message_id: pin.messageId,
             body: pin.message.body,
             created_by_name: pin.message.user.name,
-            date_label: `${date.getMonth() + 1}/${date.getDate()}`,
+            date_label: `${jstDate.getUTCMonth() + 1}/${jstDate.getUTCDate()}`,
         };
     });
 
