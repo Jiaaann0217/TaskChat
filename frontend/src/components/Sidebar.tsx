@@ -102,10 +102,10 @@ export default function Sidebar({ activeRoomId, onSelectRoom, onDeleteRoom, onSt
             )}
             <button
               className="ni-delete-btn"
-              title="削除"
+              title="退出"
               onClick={(e) => { e.stopPropagation(); handleDelete(room.id); }}
             >
-              <i className="ti ti-trash" />
+              <i className="ti ti-door-exit" />
             </button>
           </div>
         ))

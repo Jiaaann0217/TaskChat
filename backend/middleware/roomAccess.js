@@ -4,6 +4,11 @@ module.exports = async function ensureRoomAccess(req, res, next) {
     const roomId = Number(req.params.roomId ?? req.query.roomId ?? req.body.roomId);
     if (!roomId) return res.status(400).json({ error: "roomIdが必要です" });
 
+    const room = await prisma.room.findUnique({ where: { id: roomId } });
+    if (!room || room.workspaceId !== req.user.workspaceId) {
+        return res.status(404).json({ error: "ルームが見つかりません" });
+    }
+
     const task = await prisma.task.findFirst({ where: { roomId } });
     if (task) {
         const isOwner = task.assignedToId === req.user.id;

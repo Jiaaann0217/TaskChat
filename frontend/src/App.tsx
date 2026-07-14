@@ -65,6 +65,11 @@ export default function App() {
     setShowModal(true);
   }
 
+  function handleRoomJoined() {
+    setRoomListVersion((v) => v + 1);
+    setTaskListVersion((v) => v + 1);
+  }
+  
   // モーダル確定
   async function handleModalSubmit() {
     setSubmitting(true);
@@ -184,6 +189,7 @@ export default function App() {
         roomId={activeRoomId}
         onStartChat={handleStartChat}
         onRecruitPosted={handleRecruitPosted}
+        onRoomJoined={handleRoomJoined}
         pinPanelOpen={pinPanelOpen}
         onTogglePin={() => setPinPanelOpen((o) => !o)}
         onPinChange={() => setPinRefreshTrigger((v) => v + 1)}

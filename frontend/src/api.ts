@@ -91,6 +91,7 @@ export function logout() {
   localStorage.removeItem("avatar_color");
   localStorage.removeItem("workspace_name");
   localStorage.removeItem("workspace_code");
+  localStorage.removeItem("user_name");
 }
 
 async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -166,7 +167,7 @@ export async function fetchRooms(): Promise<Room[]> {
     id: room.id,
     name: room.name,
     icon: "ti-message-circle",
-    unread: 0,
+
   }));
 }
 

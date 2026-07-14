@@ -24,7 +24,7 @@ router.get("/", auth, async (req, res) => {
             return task.assignedToId === req.user.id || joinedTaskIds.has(task.id);
         })
         .map(({ id, name }) => ({ id, name }));
-    res.json(rooms);
+    res.json(visibleRooms);
 });
 
 // ルーム作成（チャット開始）
@@ -39,8 +39,13 @@ router.post("/", auth, async (req, res) => {
 router.delete("/:id", auth, async (req, res) => {
     const roomId = Number(req.params.id);
     try {
+        const room = await prisma.room.findUnique({ where: { id: roomId } });
+        if (!room || room.workspaceId !== req.user.workspaceId) {
+            return res.status(404).json({ error: "ルームが見つかりません" });
+        }
         // リレーションの順番通りに削除（Pin → Message → Room）
         await prisma.$transaction(async (tx) => {
+            await tx.taskParticipant.deleteMany({ where: { task: { roomId } } });
             await tx.pin.deleteMany({ where: { roomId } });
             await tx.message.deleteMany({ where: { roomId } });
             await tx.task.deleteMany({ where: { roomId } });

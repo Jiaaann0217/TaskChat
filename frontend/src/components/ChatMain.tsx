@@ -19,7 +19,7 @@ type Props = {
   jumpToken: number;
 };
 
-type LocalMessage = Message & { is_recruiting?: boolean };
+type LocalMessage = Message;
 
 export default function ChatMain({ roomId, onStartChat, onRecruitPosted, onRoomJoined, pinPanelOpen, onTogglePin, onPinChange, onTaskComplete, searchQuery, searchToken, jumpMessageId, jumpToken }: Props) {
   const [messages, setMessages] = useState<LocalMessage[]>([]);
@@ -230,7 +230,7 @@ export default function ChatMain({ roomId, onStartChat, onRecruitPosted, onRoomJ
             <div
               key={msg.id}
               ref={(el) => { messageRefs.current[msg.id] = el; }}
-              className={`msg ${msg.is_recruiting ? "msg--recruiting" : ""} ${highlightedId === msg.id ? "msg--highlighted" : ""}`}
+              className={`msg ${msg.needs_response ? "msg--recruiting" : ""} ${highlightedId === msg.id ? "msg--highlighted" : ""}`}
             >
               <div
                 className="msg-av"

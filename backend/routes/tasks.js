@@ -5,23 +5,23 @@ const auth = require("../middleware/auth");
 const ensureRoomAccess = require("../middleware/roomAccess");
 
 router.get("/", auth, async (req, res) => {
+    const myParticipations = await prisma.taskParticipant.findMany({
+        where: { userId: req.user.id },
+        select: { taskId: true },
+    });
+    const joinedTaskIds = myParticipations.map((p) => p.taskId);
+
     const tasks = await prisma.task.findMany({
-        where: { room: { workspaceId: req.user.workspaceId } },
+        where: {
+            OR: [
+                { assignedToId: req.user.id },
+                { id: { in: joinedTaskIds } },
+            ],
+        },
         orderBy: { dueDate: "asc" },
         include: { assignedTo: { select: { name: true } } },
     });
     res.json(tasks);
-});
-
-router.post("/", auth, async (req, res) => {
-    const task = await prisma.task.create({
-        data: {
-            title: req.body.title,
-            dueDate: req.body.dueDate ? new Date(req.body.dueDate) : null,
-            assignedToId: req.user.id,
-        },
-    });
-    res.json(task);
 });
 
 router.post("/from-message", auth, async (req, res) => {
@@ -71,8 +71,20 @@ router.post("/join-by-message/:messageId", auth, async (req, res) => {
 });
 
 router.patch("/:id/done", auth, async (req, res) => {
+    const taskId = Number(req.params.id);
+    const existing = await prisma.task.findUnique({ where: { id: taskId } });
+    if (!existing) return res.status(404).json({ error: "Task not found" });
+
+    const isOwner = existing.assignedToId === req.user.id;
+    const participant = await prisma.taskParticipant.findUnique({
+        where: { taskId_userId: { taskId, userId: req.user.id } },
+    });
+    if (!isOwner && !participant) {
+        return res.status(403).json({ error: "この作業に参加していません" });
+    }
+
     const task = await prisma.task.update({
-        where: { id: Number(req.params.id) },
+        where: { id: taskId },
         data: { done: true },
     });
 
@@ -103,14 +115,35 @@ router.delete("/:id", auth, async (req, res) => {
         const task = await prisma.task.findUnique({ where: { id: taskId } });
         if (!task) return res.status(404).json({ error: "Task not found" });
 
+        const isOwner = task.assignedToId === req.user.id;
+        const participant = await prisma.taskParticipant.findUnique({
+            where: { taskId_userId: { taskId, userId: req.user.id } },
+        });
+        if (!isOwner && !participant) {
+            return res.status(403).json({ error: "この作業に参加していません" });
+        }
+
         await prisma.$transaction(async (tx) => {
-            if (task.roomId) {
-                await tx.taskParticipant.deleteMany({ where: { taskId } });
-                await tx.pin.deleteMany({ where: { roomId: task.roomId } });
-                await tx.message.deleteMany({ where: { roomId: task.roomId } });
+            // 自分の参加登録だけ解除
+            await tx.taskParticipant.deleteMany({ where: { taskId, userId: req.user.id } });
+
+            const remaining = await tx.taskParticipant.findMany({ where: { taskId } });
+
+            if (remaining.length === 0) {
+                // 誰も残っていなければ実体ごと削除
+                if (task.roomId) {
+                    await tx.pin.deleteMany({ where: { roomId: task.roomId } });
+                    await tx.message.deleteMany({ where: { roomId: task.roomId } });
+                }
+                await tx.task.delete({ where: { id: taskId } });
+                if (task.roomId) await tx.room.delete({ where: { id: task.roomId } });
+            } else if (isOwner) {
+                // オーナー（assignedTo）が抜けた場合は残りの参加者に引き継ぐ
+                await tx.task.update({
+                    where: { id: taskId },
+                    data: { assignedToId: remaining[0].userId },
+                });
             }
-            await tx.task.delete({ where: { id: taskId } });
-            if (task.roomId) await tx.room.delete({ where: { id: task.roomId } });
         });
 
         res.status(204).send();
