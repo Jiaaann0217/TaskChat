@@ -34,6 +34,7 @@ export default function App() {
   const [profileError, setProfileError] = useState("");
   const [profileSubmitting, setProfileSubmitting] = useState(false);
   const [pinRefreshTrigger, setPinRefreshTrigger] = useState(0);
+  const [recruitMessageId, setRecruitMessageId] = useState<number | null>(null);
 
   // 汎用モーダル
   const [modalMode, setModalMode] = useState<ModalMode>("room");
@@ -54,22 +55,25 @@ export default function App() {
     setModalMode("task");
     setModalInput("");
     setModalDueDate("");
+    setRecruitMessageId(null);
     setShowModal(true);
   }
 
   // 募集チャット投稿時 → タスク追加モーダル（メッセージ本文を初期値にセット）
-  function handleRecruitPosted(title: string) {
+  function handleRecruitPosted(title: string, messageId: number) {
     setModalMode("task");
     setModalInput(title);
     setModalDueDate("");
+    setRecruitMessageId(messageId);
     setShowModal(true);
   }
 
-  function handleRoomJoined() {
+  function handleRoomJoined(roomId: number | null) {
     setRoomListVersion((v) => v + 1);
     setTaskListVersion((v) => v + 1);
+    if (roomId) setActiveRoomId(roomId);
   }
-  
+
   // モーダル確定
   async function handleModalSubmit() {
     setSubmitting(true);
@@ -81,7 +85,7 @@ export default function App() {
         setRoomListVersion((v) => v + 1);
       } else {
         const title = modalInput.trim() || "新しい作業";
-        const task = await createTask(title, modalDueDate || null);
+        const task = await createTask(title, modalDueDate || null, recruitMessageId);
         setTaskListVersion((v) => v + 1);
         setRoomListVersion((v) => v + 1);
         if (task.roomId) {
@@ -94,6 +98,7 @@ export default function App() {
     } finally {
       setSubmitting(false);
       setShowModal(false);
+      setRecruitMessageId(null);
     }
   }
 
