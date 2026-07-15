@@ -12,6 +12,7 @@ export type Task = {
   color: string;
   overdue: boolean;
   roomId: number | null;
+  assignee_name:string;
 };
 
 export type Message = {
@@ -55,6 +56,7 @@ type BackendTask = {
   dueDate: string | null;
   done: boolean;
   roomId: number | null;
+  assignedTo?: {name: string} | null;
 };
 
 export type BackendMessage = {
@@ -180,6 +182,7 @@ export async function fetchTasks(): Promise<Task[]> {
     color: taskColor(task.dueDate, task.done),
     overdue: !task.done && isOverdue(task.dueDate),
     roomId: task.roomId,
+    assignee_name: task.assignedTo?.name ?? " 未設定",
   }));
 }
 

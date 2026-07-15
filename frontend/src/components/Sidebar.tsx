@@ -126,6 +126,7 @@ export default function Sidebar({ activeRoomId, onSelectRoom, onDeleteRoom, onSt
           >
             <div className="ni-dot" style={{ background: task.color }} />
             <span className="t-name">{task.title}</span>
+            <span className="t-assignee">{task.assignee_name}</span>
             <span className="t-due">{task.due_label}</span>
             <button
               className="ni-delete-btn"
