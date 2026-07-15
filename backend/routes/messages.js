@@ -6,8 +6,13 @@ const ensureRoomAccess = require("../middleware/roomAccess");
 
 function formatMessage(msg) {
     const date = new Date(msg.createdAt);
-    const jstDate = new Date(date.getTime() + 9 * 60 * 60 * 1000);
-    const time = `${date.getHours()}:${String(date.getMinutes()).padStart(2, "0")}`;
+
+    const time = date.toLocaleTimeString("ja-JP", {
+        timeZone: "Asia/Tokyo",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+    });
 
     return {
         id: msg.id,
