@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { fetchMessages, sendMessage, fetchPins, createPin, deletePin, fetchTaskByRoom, completeTask, joinTaskByMessage, type Message, type RoomTask } from "../api";
+import { fetchMessages, sendMessage, fetchPins, createPin, deletePin, fetchTaskByRoom, completeTask, joinTaskByMessage, fetchRoomName, type Message, type RoomTask } from "../api";
 import EmptyChat from "./EmptyChat";
 import YarimasuButton from "./YarimasuButton";
 import "./ChatMain.css";
@@ -28,6 +28,7 @@ export default function ChatMain({ roomId, onStartChat, onRecruitPosted, onRoomJ
   const [doneIds, setDoneIds] = useState<number[]>([]);
   const [pinnedIds, setPinnedIds] = useState<number[]>([]);
   const [roomTask, setRoomTask] = useState<RoomTask | null>(null);
+  const [roomName, setRoomName] = useState<string>("");
   const [highlightedId, setHighlightedId] = useState<number | null>(null);
   const [searchNotFound, setSearchNotFound] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -42,6 +43,7 @@ export default function ChatMain({ roomId, onStartChat, onRecruitPosted, onRoomJ
     fetchMessages(roomId).then(setMessages);
     fetchPins(roomId).then((pins) => setPinnedIds(pins.map((p) => p.message_id)));
     fetchTaskByRoom(roomId).then(setRoomTask);
+    fetchRoomName(roomId).then(setRoomName).catch(() => setRoomName(""));   // ← この行を追加
     setRecruiting(false);
 
     // WebSocket接続
@@ -199,7 +201,7 @@ export default function ChatMain({ roomId, onStartChat, onRecruitPosted, onRoomJ
         <div className="ch-icon">
           <i className="ti ti-message-circle-2" />
         </div>
-        <span className="ch-title">ルーム #{roomId}</span>
+        <span className="ch-title">{roomName || `ルーム #${roomId}`}</span>
         <div className="ch-members" />
         <button className={`ch-btn ${pinPanelOpen ? "ch-btn--pin-active" : ""}`} onClick={onTogglePin}>
           <i className={`ti ${pinPanelOpen ? "ti-pin-filled" : "ti-pin"}`} />

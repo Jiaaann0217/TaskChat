@@ -12,7 +12,7 @@ export type Task = {
   color: string;
   overdue: boolean;
   roomId: number | null;
-  assignee_name:string;
+  assignee_name: string;
 };
 
 export type Message = {
@@ -56,7 +56,7 @@ type BackendTask = {
   dueDate: string | null;
   done: boolean;
   roomId: number | null;
-  assignedTo?: {name: string} | null;
+  assignedTo?: { name: string } | null;
 };
 
 export type BackendMessage = {
@@ -207,6 +207,11 @@ export async function fetchPins(roomId: number): Promise<Pin[]> {
 
 export async function fetchContributions(): Promise<Contribution[]> {
   return apiFetch<Contribution[]>("/api/contributions");
+}
+
+export async function fetchRoomName(roomId: number): Promise<string> {
+  const room = await apiFetch<{ id: number; name: string }>(`/api/rooms/${roomId}`);
+  return room.name;
 }
 
 export async function createRoom(name = "新しいチャット"): Promise<Room> {

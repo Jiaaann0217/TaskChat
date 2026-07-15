@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const prisma = require("../prisma/client");
 const auth = require("../middleware/auth");
+const ensureRoomAccess = require("../middleware/roomAccess");
 
 // ルーム一覧
 router.get("/", auth, async (req, res) => {
@@ -25,6 +26,13 @@ router.get("/", auth, async (req, res) => {
         })
         .map(({ id, name }) => ({ id, name }));
     res.json(visibleRooms);
+});
+
+// ルーム1件の情報を取得（チャットヘッダーの名前表示用）
+router.get("/:roomId", auth, ensureRoomAccess, async (req, res) => {
+    const room = await prisma.room.findUnique({ where: { id: Number(req.params.roomId) } });
+    if (!room) return res.status(404).json({ error: "ルームが見つかりません" });
+    res.json({ id: room.id, name: room.name });
 });
 
 // ルーム作成（チャット開始）
